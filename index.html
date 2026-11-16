@@ -125,7 +125,18 @@ input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--lin
 .agree{display:flex;gap:8px;align-items:flex-start;font-weight:400;margin:14px 0 0}
 .agree input{width:auto;margin-top:3px}
 .agree a{color:var(--glow);font-weight:600}
+.nav{display:flex;gap:6px;margin:0 0 16px}
+.nav .btn{flex:1}
+.nav .on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.timer{text-align:center;font-weight:800;font-size:1.3rem;margin:14px 0 0;min-height:1.4em}
+.chatbox{max-height:50vh;overflow:auto}
+#discoLayer{position:fixed;inset:0;z-index:85;pointer-events:none;mix-blend-mode:screen;opacity:.45;background:conic-gradient(from 0deg,#f0f,#0ff,#ff0,#f0f);animation:disco .8s linear infinite}
+@keyframes disco{to{filter:hue-rotate(360deg)}}
 </style>
+<script>(function(){function box(t){var d=document.createElement("div");d.style.cssText="position:fixed;left:8px;right:8px;top:8px;z-index:9999;background:#b00020;color:#fff;padding:10px 12px;border-radius:10px;font:14px/1.4 system-ui,sans-serif";d.textContent=t;if(document.body){document.body.appendChild(d)}else{document.addEventListener("DOMContentLoaded",function(){document.body.appendChild(d)})}}
+window.addEventListener("error",function(e){box("Site error: "+(e.message||"unknown"))});
+window.addEventListener("unhandledrejection",function(e){box("Site error: "+((e.reason&&e.reason.message)||e.reason))});
+setTimeout(function(){if(!window.__vsLoaded)box("The site code did not load. Check your internet connection, or whether Firebase scripts are blocked.")},8000)})();</script>
 </head>
 <body>
 <div class="intro wait" id="intro" aria-hidden="true">
@@ -139,6 +150,8 @@ input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--lin
   <div class="flash"></div>
   <div class="tapgo" id="tapgo">Tap to enter</div>
 </div>
+<canvas id="fxCanvas" class="hide" style="position:fixed;inset:0;z-index:90;pointer-events:none"></canvas>
+<div id="discoLayer" class="hide"></div>
 <div class="tools">
   <button class="btn" id="themeBtn">Dark mode</button>
   <button class="btn" id="fastBtn" aria-pressed="false">Fast mode: off</button>
@@ -186,6 +199,17 @@ input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--lin
   </div>
 </section>
 
+<section id="verify" class="auth hide">
+  <div class="card welcome">
+    <h2 class="hello">Check your email</h2>
+    <p class="sub" id="vSub">We sent you a link. Open it, then come back and tap the button below.</p>
+    <p class="err" id="vErr" role="alert"></p>
+    <button class="btn primary full" id="vDone">I’ve verified my email</button>
+    <button class="btn full" id="vResend">Send the email again</button>
+    <button class="btn full" id="vOut">Log out</button>
+  </div>
+</section>
+
 <section id="app" class="hide">
   <div class="top">
     <div class="brandrow"><img class="mini" data-logo alt=""><h1 class="logo">v<i>s</i></h1></div>
@@ -196,11 +220,14 @@ input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--lin
     </div>
   </div>
 
+  <div class="nav"><button class="btn small on" data-tab="battle">⚔️ Battle</button><button class="btn small" data-tab="prev">🏆 Previous</button><button class="btn small" data-tab="chat">💬 Chat</button></div>
+  <div id="tab-battle">
   <div class="arena">
     <div class="side a" id="sideA"><h2 id="nA"></h2><div class="count"><span id="cA">0</span><small>votes</small></div><button class="btn" id="vA">Vote</button></div>
     <div class="vs">vs</div>
     <div class="side b" id="sideB"><h2 id="nB"></h2><div class="count"><span id="cB">0</span><small>votes</small></div><button class="btn" id="vB">Vote</button></div>
   </div>
+  <p class="timer" id="timer"></p>
   <div class="bar" aria-hidden="true"><div id="barFill"></div></div>
   <p class="status" id="status"></p>
 
@@ -212,6 +239,11 @@ input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--lin
       <button class="btn danger" id="resetVotes">Reset all votes</button>
       <button class="btn" id="exitAdmin">Exit admin</button>
     </div>
+    <h3 style="margin:16px 0 8px">Battle timer</h3>
+    <div class="row"><input id="tMin" type="number" min="1" max="1440" placeholder="Minutes" aria-label="Timer minutes"><button class="btn primary" id="tStart">Start timer</button><button class="btn" id="tClear">Clear timer</button></div>
+    <div class="row" style="margin-top:10px"><button class="btn danger" id="endBattle">End battle and save to history</button></div>
+    <h3 style="margin:16px 0 8px">Fun tools</h3>
+    <div class="row"><button class="btn" id="fxFire">🎆 Fireworks</button><button class="btn" id="fxDisco">🪩 Disco mode</button></div>
     <p class="status" style="text-align:left;margin-top:8px" id="adminMsg"></p>
     <h3 style="margin:18px 0 4px">Votes by user</h3>
     <div id="voterList"></div>
@@ -220,8 +252,13 @@ input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--lin
   <div class="card views">
     <h3>Views</h3>
     <div class="row"><input id="newView" maxlength="200" placeholder="Share your view" aria-label="Your view"><button class="btn primary" id="postView">Post</button></div>
+    <label class="agree"><input type="checkbox" id="anonChk"><span>Post anonymously</span></label>
     <div id="viewList" style="margin-top:12px"></div>
   </div>
+  </div>
+  <div id="tab-prev" class="hide"><div class="card views"><h3>Previous battles</h3><div id="prevList" style="margin-top:12px"></div></div></div>
+  <div id="tab-chat" class="hide"><div class="card views"><h3>Global chat</h3><div id="chatList" class="chatbox"></div>
+    <div class="row" style="margin-top:10px"><input id="chatIn" maxlength="200" placeholder="Say something" aria-label="Chat message"><button class="btn primary" id="chatSend">Send</button></div></div></div>
 </section>
 </div>
 
@@ -229,297 +266,4 @@ input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--lin
   <div class="card">
     <h3 id="cTitle"></h3>
     <p class="pill">You can only vote once. This can’t be changed.</p>
-    <div class="row" style="margin-top:14px"><button class="btn primary" id="cYes">Yes, vote</button><button class="btn" id="cNo">Cancel</button></div>
-  </div>
-</div>
-<div class="modal hide" id="termsModal" role="dialog" aria-modal="true" aria-labelledby="tTitle">
-  <div class="card terms">
-    <div class="thead"><h3 id="tTitle"></h3><span class="pill" id="tPage"></span></div>
-    <div class="tbody" id="tBody"></div>
-    <div class="row" style="margin-top:14px"><button class="btn" id="tPrev">Back</button><button class="btn primary" id="tNext">Next</button><button class="btn" id="tClose">Close</button></div>
-  </div>
-</div>
-<div class="modal hide" id="pinModal" role="dialog" aria-modal="true" aria-labelledby="pTitle">
-  <div class="card">
-    <h3 id="pTitle">Admin PIN</h3>
-    <input id="pinIn" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Admin PIN">
-    <p class="err" id="pinErr" role="alert"></p>
-    <div class="row" style="margin-top:6px"><button class="btn primary" id="pinGo">Enter</button><button class="btn" id="pinNo">Cancel</button></div>
-  </div>
-</div>
-
-<script type="module">
-import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signInWithPopup,GoogleAuthProvider,updateProfile,signOut} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import {getFirestore,doc,collection,setDoc,addDoc,deleteDoc,getDocs,onSnapshot,query,orderBy,limit,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-const firebaseConfig={apiKey:"AIzaSyCbMtAZDl1o30MgGVb_EfATVSIdZO4D7-A",authDomain:"versus-0000.firebaseapp.com",projectId:"versus-0000",storageBucket:"versus-0000.firebasestorage.app",messagingSenderId:"408878840441",appId:"1:408878840441:web:f62197d5be678b179fb2a8"};
-(function(){
-var ADMIN_PIN="2023";
-var LOGO="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48ZGVmcz48ZyBpZD0icyI+PHBvbHlnb24gcG9pbnRzPSIxMDAsMTAgMTA4LDMwIDEwOCwxMTIgOTIsMTEyIDkyLDMwIi8+PHJlY3QgeD0iNzgiIHk9IjExMiIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjkiIHJ4PSIzIi8+PHJlY3QgeD0iOTYiIHk9IjEyMSIgd2lkdGg9IjgiIGhlaWdodD0iMzAiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxNTYiIHI9IjciLz48L2c+PC9kZWZzPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iOTYiIGZpbGw9IiMxNjEzMmIiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjkyIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNCIvPjxnIHN0cm9rZT0iIzE2MTMyYiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48dXNlIGhyZWY9IiNzIiBmaWxsPSIjNmY4NWZmIiB0cmFuc2Zvcm09InJvdGF0ZSg0NSAxMDAgOTApIi8+PHVzZSBocmVmPSIjcyIgZmlsbD0iI2ZmN2E5MyIgdHJhbnNmb3JtPSJyb3RhdGUoLTQ1IDEwMCA5MCkiLz48L2c+PHRleHQgeD0iMTAwIiB5PSIxMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayxBcmlhbCxIZWx2ZXRpY2Esc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSI2NiIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjMTYxMzJiIiBzdHJva2Utd2lkdGg9IjkiIHBhaW50LW9yZGVyPSJzdHJva2UiIGxldHRlci1zcGFjaW5nPSItMyI+VlM8L3RleHQ+PC9zdmc+";
-Array.prototype.forEach.call(document.querySelectorAll("img[data-logo]"),function(i){i.src=LOGO});
-var $=function(id){return document.getElementById(id)};
-function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
-function show(id){["auth","google","app"].forEach(function(x){$(x).classList.toggle("hide",x!==id)})}
-var fapp=initializeApp(firebaseConfig),auth=getAuth(fapp),fs=getFirestore(fapp);
-var user=null,names=["Option A","Option B"],votes={},views=[],voterKeys=[],isAdmin=false,mode="login",pending=null;
-function dname(){return user?(user.displayName||(user.email||"user").split("@")[0]):"Admin"}
-function counts(){var c=[0,0];Object.keys(votes).forEach(function(k){var v=votes[k].choice;if(v===0||v===1)c[v]++});return c}
-function adminFail(e){$("adminMsg").textContent=e&&e.code==="permission-denied"?"Only the admin account can do that. Log in with the admin Google account first.":"Something went wrong. Please try again."}
-function authMsg(e){var c=(e&&e.code)||"";
-  if(c==="auth/email-already-in-use")return "Looks like you already have an account. Try logging in instead.";
-  if(c==="auth/invalid-credential"||c==="auth/wrong-password"||c==="auth/user-not-found")return "Hmm, that email and password don’t match. Give it another try.";
-  if(c==="auth/weak-password")return "Choose a stronger password (at least 6 characters).";
-  if(c==="auth/invalid-email")return "Enter a valid email address.";
-  if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request")return "";
-  if(c==="auth/unauthorized-domain")return "This website address is not allowed yet. Add it in Firebase under Authentication, then Settings, then Authorized domains.";
-  if(c==="auth/too-many-requests")return "Too many tries. Wait a minute and try again.";
-  return "Something went wrong. Please try again."}
-
-/* live data */
-onSnapshot(doc(fs,"config","main"),function(s){if(s.exists()&&s.data().names)names=s.data().names;render()},function(e){console.error(e)});
-onSnapshot(collection(fs,"votes"),function(s){votes={};s.forEach(function(d){votes[d.id]=d.data()});render()},function(e){console.error(e)});
-onSnapshot(query(collection(fs,"views"),orderBy("ts","desc"),limit(100)),function(s){views=[];s.forEach(function(d){var x=d.data();x.id=d.id;views.push(x)});renderViews()},function(e){console.error(e)});
-
-/* auth */
-function setMode(m){
-  mode=m;$("tabLogin").classList.toggle("on",m==="login");$("tabSignup").classList.toggle("on",m==="signup");
-  $("nameBox").classList.toggle("hide",m!=="signup");$("agreeBox").classList.toggle("hide",m!=="signup");
-  $("authGo").textContent=m==="login"?"Log in":"Create my account";
-  $("hello").textContent=m==="login"?"Welcome back":"Join the fun";
-  $("sub").textContent=m==="login"?"Good to see you again. Log in to cast your vote.":"Make a free account, pick a side, and share your view. It takes 10 seconds.";
-  $("authErr").textContent="";
-}
-$("tabLogin").onclick=function(){setMode("login")};
-$("tabSignup").onclick=function(){setMode("signup")};
-function validEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)}
-$("authGo").onclick=async function(){
-  var email=$("uEmail").value.trim(),pass=$("uPass").value,name=$("uName").value.trim(),err=$("authErr"),btn=$("authGo");
-  if(!validEmail(email)){err.textContent="Enter a valid email address.";return}
-  if(pass.length<6){err.textContent="Password must be at least 6 characters.";return}
-  if(mode==="signup"){
-    if(!name){err.textContent="Choose a username.";return}
-    if(!$("agreeChk").checked){err.textContent="Please agree to the Terms and Conditions to create an account.";return}
-  }
-  err.textContent="";btn.disabled=true;
-  try{
-    if(mode==="signup"){var cr=await createUserWithEmailAndPassword(auth,email,pass);await updateProfile(cr.user,{displayName:name});render()}
-    else{await signInWithEmailAndPassword(auth,email,pass)}
-    $("uPass").value="";sfx("success");
-  }catch(e){err.textContent=authMsg(e)}
-  btn.disabled=false;
-};
-$("toGoogle").onclick=function(){show("google")};
-$("gBack").onclick=function(){show("auth")};
-$("gGo").onclick=async function(){
-  if(!$("gAgree").checked){$("gErr").textContent="Please agree to the Terms and Conditions to continue.";return}
-  $("gErr").textContent="";
-  try{await signInWithPopup(auth,new GoogleAuthProvider());sfx("success")}catch(e){$("gErr").textContent=authMsg(e)}
-};
-$("logout").onclick=function(){isAdmin=false;signOut(auth)};
-onAuthStateChanged(auth,function(u){user=u;show(u||isAdmin?"app":"auth");render()});
-
-/* render */
-function render(){
-  var c=counts(),mine=user&&votes[user.uid]?votes[user.uid].choice:null,t=c[0]+c[1];
-  $("who").textContent=dname();
-  $("nA").textContent=names[0];$("nB").textContent=names[1];$("cA").textContent=c[0];$("cB").textContent=c[1];
-  $("barFill").style.width=(t?c[0]/t*100:50)+"%";
-  $("vA").disabled=$("vB").disabled=(mine!==null||!user);
-  $("vA").textContent=mine===0?"Your vote":"Vote";$("vB").textContent=mine===1?"Your vote":"Vote";
-  $("sideA").classList.toggle("mine",mine===0);$("sideB").classList.toggle("mine",mine===1);
-  $("status").textContent=!user?"Admin view. Log in with an account to vote.":(mine===null?"Pick a side. You get one vote.":"You voted for "+names[mine]+". Thanks!");
-  $("adminPanel").classList.toggle("hide",!isAdmin);$("adminBtn").classList.toggle("hide",isAdmin);
-  if(isAdmin){
-    if(document.activeElement!==$("eA")&&document.activeElement!==$("eB")){$("eA").value=names[0];$("eB").value=names[1]}
-    renderVoters();
-  }
-  renderViews();
-}
-function renderVoters(){
-  var box=$("voterList");
-  voterKeys=Object.keys(votes).filter(function(k){var v=votes[k].choice;return v===0||v===1});
-  if(!voterKeys.length){box.innerHTML='<p class="empty">No votes yet.</p>';return}
-  box.innerHTML=voterKeys.map(function(k,i){var v=votes[k];
-    return '<div class="view"><div><p>'+esc(v.name||"User")+' voted for '+esc(names[v.choice])+'</p></div><button class="btn danger small" data-i="'+i+'">Remove vote</button></div>';
-  }).join("");
-}
-function renderViews(){
-  var box=$("viewList");
-  if(!views.length){box.innerHTML='<p class="empty">No views yet. Be the first to post.</p>';return}
-  box.innerHTML=views.map(function(v,i){
-    return '<div class="view"><div><p>'+esc(v.text)+'</p><span>'+esc(v.by||"")+'</span></div>'+
-      (isAdmin?'<button class="btn danger small" data-del="'+i+'">Remove</button>':'')+'</div>';
-  }).join("");
-}
-$("viewList").onclick=async function(e){
-  var i=e.target.getAttribute&&e.target.getAttribute("data-del");
-  if(i===null||i===undefined||!isAdmin||!views[+i])return;
-  try{await deleteDoc(doc(fs,"views",views[+i].id))}catch(x){adminFail(x)}
-};
-$("postView").onclick=async function(){
-  var t=$("newView").value.trim();if(!t||!user)return;$("newView").value="";
-  try{await addDoc(collection(fs,"views"),{text:t,by:dname(),uid:user.uid,ts:serverTimestamp()})}catch(e){alert("Could not post your view. Please try again.")}
-};
-
-/* voting */
-function ask(i){pending=i;$("cTitle").textContent="Are you sure you want to vote for “"+names[i]+"”?";$("confirm").classList.remove("hide");$("cYes").focus()}
-$("vA").onclick=function(){ask(0)};
-$("vB").onclick=function(){ask(1)};
-$("cNo").onclick=function(){$("confirm").classList.add("hide");pending=null};
-$("cYes").onclick=async function(){
-  $("confirm").classList.add("hide");
-  if(!user||pending===null||votes[user.uid])return;
-  var ch=pending;pending=null;
-  try{await setDoc(doc(fs,"votes",user.uid),{choice:ch,name:dname(),ts:serverTimestamp()});sfx("vote")}
-  catch(e){alert("Could not save your vote. You may have already voted.")}
-};
-
-/* admin */
-$("adminBtn").onclick=function(){$("pinIn").value="";$("pinErr").textContent="";$("pinModal").classList.remove("hide");$("pinIn").focus()};
-$("pinNo").onclick=function(){$("pinModal").classList.add("hide")};
-Array.prototype.forEach.call(document.querySelectorAll(".adminKey"),function(b){b.onclick=$("adminBtn").onclick});
-function tryPin(){
-  if($("pinIn").value===ADMIN_PIN){isAdmin=true;sfx("success");$("pinModal").classList.add("hide");if(!user)show("app");render()}
-  else{$("pinErr").textContent="Wrong PIN. Try again."}
-}
-$("pinGo").onclick=tryPin;
-$("pinIn").onkeydown=function(e){if(e.key==="Enter")tryPin()};
-$("exitAdmin").onclick=function(){isAdmin=false;if(user)render();else show("auth")};
-$("voterList").onclick=async function(e){
-  var i=e.target.getAttribute&&e.target.getAttribute("data-i");
-  if(i===null||i===undefined||!isAdmin)return;
-  var k=voterKeys[+i],v=votes[k];if(!v)return;
-  if(!confirm("Remove "+(v.name||"this user")+"’s vote for "+names[v.choice]+"? They will be able to vote again."))return;
-  try{await deleteDoc(doc(fs,"votes",k));$("adminMsg").textContent="Removed the vote from "+(v.name||"the user")+"."}catch(x){adminFail(x)}
-};
-$("saveNames").onclick=async function(){
-  var a=$("eA").value.trim(),b=$("eB").value.trim();
-  if(!a||!b){$("adminMsg").textContent="Both names are required.";return}
-  try{await setDoc(doc(fs,"config","main"),{names:[a,b]});$("adminMsg").textContent="Names saved."}catch(x){adminFail(x)}
-};
-$("resetVotes").onclick=async function(){
-  if(!confirm("Reset all votes? Everyone will be able to vote again."))return;
-  try{var s=await getDocs(collection(fs,"votes")),wb=writeBatch(fs);s.forEach(function(d){wb.delete(d.ref)});await wb.commit();$("adminMsg").textContent="Votes reset."}catch(x){adminFail(x)}
-};
-
-var prefs={theme:null,fast:false,sound:true};
-try{prefs=Object.assign(prefs,JSON.parse(localStorage.getItem("vs-prefs")||"{}"))}catch(e){}
-function effTheme(){return prefs.theme||(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}
-function applyPrefs(){
-  var r=document.documentElement;
-  if(prefs.theme)r.setAttribute("data-theme",prefs.theme);else r.removeAttribute("data-theme");
-  r.classList.toggle("fast",!!prefs.fast);
-  $("themeBtn").textContent=effTheme()==="dark"?"Light mode":"Dark mode";
-  $("fastBtn").textContent="Fast mode: "+(prefs.fast?"on":"off");
-  $("fastBtn").setAttribute("aria-pressed",prefs.fast?"true":"false");
-  $("soundBtn").textContent="Sound: "+(prefs.sound?"on":"off");
-  try{localStorage.setItem("vs-prefs",JSON.stringify(prefs))}catch(e){}
-}
-$("themeBtn").onclick=function(){prefs.theme=effTheme()==="dark"?"light":"dark";applyPrefs()};
-$("fastBtn").onclick=function(){prefs.fast=!prefs.fast;applyPrefs()};
-$("soundBtn").onclick=function(){prefs.sound=!prefs.sound;applyPrefs()};
-applyPrefs();
-var intro=$("intro");
-function endIntro(){if(intro&&intro.parentNode){intro.parentNode.removeChild(intro)}}
-var actx=null;
-function initAudio(){try{var C=window.AudioContext||window.webkitAudioContext;if(C&&!actx)actx=new C();if(actx&&actx.state==="suspended")actx.resume()}catch(e){}}
-function noise(t,dur,type,f0,f1,vol){var n=Math.floor(actx.sampleRate*dur),b=actx.createBuffer(1,n,actx.sampleRate),d=b.getChannelData(0);for(var i=0;i<n;i++)d[i]=Math.random()*2-1;var s=actx.createBufferSource();s.buffer=b;var fl=actx.createBiquadFilter();fl.type=type;fl.frequency.setValueAtTime(f0,t);fl.frequency.exponentialRampToValueAtTime(f1,t+dur);var g=actx.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);s.connect(fl);fl.connect(g);g.connect(actx.destination);s.start(t)}
-function playSound(){
-  if(!actx)return;var t=actx.currentTime,c=t+.6;
-  noise(t,.55,"bandpass",300,2800,.35);
-  noise(c,.14,"highpass",3000,7000,.8);
-  [1180,1760,2490,3320,4410].forEach(function(f,i){var o=actx.createOscillator(),g=actx.createGain();o.type=i%2?"triangle":"sine";o.frequency.value=f;g.gain.setValueAtTime(0.0001,c);g.gain.exponentialRampToValueAtTime(.5/(i+1),c+.005);g.gain.exponentialRampToValueAtTime(.001,c+1.3);o.connect(g);g.connect(actx.destination);o.start(c);o.stop(c+1.4)});
-}
-function closeAudio(){try{if(actx){actx.close();actx=null}}catch(e){}}
-function tone(f,t,dur,type,vol,f2){var o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+dur+.05)}
-function sfx(k){
-  if(!actx||!prefs.sound||actx.state!=="running")return;var t=actx.currentTime;
-  if(k==="click")tone(720,t,.07,"triangle",.12,520);
-  else if(k==="success"){tone(523,t,.18,"sine",.2);tone(784,t+.11,.3,"sine",.2);tone(1047,t+.22,.4,"sine",.15)}
-  else if(k==="vote"){noise(t,.1,"highpass",3000,7000,.5);[1180,1760,2490].forEach(function(f,i){tone(f,t,.9,i%2?"triangle":"sine",.3/(i+1))});tone(100,t,.35,"sine",.5,40);tone(784,t+.2,.4,"sine",.18);tone(1175,t+.32,.5,"sine",.16)}
-  else if(k==="error"){tone(220,t,.18,"square",.1,150);tone(150,t+.16,.22,"square",.1,110)}
-}
-function playIntro(){
-  var t=actx.currentTime,c=t+.6;
-  noise(t,.55,"bandpass",300,3000,.3);noise(t+.05,.5,"bandpass",400,3400,.2);
-  noise(c,.16,"highpass",2500,8000,.9);
-  tone(110,c,.45,"sine",.8,35);
-  [1180,1760,2490,3320,4410,5600].forEach(function(f,i){tone(f,c,1.4,i%2?"triangle":"sine",.45/(i+1))});
-  noise(c+.1,.5,"bandpass",2500,9000,.25);
-  tone(660,c+.18,.5,"sine",.15,990);
-}
-var started=false;
-function begin(){
-  if(started)return;started=true;
-  try{if(actx&&prefs.sound)playIntro()}catch(e){}
-  intro.classList.remove("wait");$("tapgo").style.display="none";
-  intro.onclick=endIntro;setTimeout(endIntro,2500);
-}
-document.addEventListener("pointerdown",initAudio);
-document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("button");if(b)sfx("click")});
-["authErr","gErr","pinErr"].forEach(function(id){try{new MutationObserver(function(){if($(id).textContent)sfx("error")}).observe($(id),{childList:true})}catch(e){}});
-if(prefs.fast){endIntro()}else{
-  initAudio();
-  if(actx&&actx.state==="running"){begin()}
-  else{$("tapgo").style.display="block";intro.onclick=function(){initAudio();var go=function(){begin()};if(actx&&actx.resume){actx.resume().then(go,go)}else{go()}}}
-}
-
-var QUOTES=["Every great rivalry starts with a single dare.","A fair fight makes both sides stronger.","Champions are made in the rounds nobody watches.","The bell rings for everyone eventually.","Fear is just an opponent you haven’t faced yet.","Swing first, apologize to nobody, shake hands after.","Real winners help the loser up.","Two blades, one spark, no regrets.","Underdogs have the loudest comebacks.","You don’t pick the fight; you pick how you stand.","Bruises fade, but the story stays.","A sharp mind beats a sharp sword.","Every knockdown is an invitation to rise.","The best rivals make you better.","Pick a side and own it.","Courage is stepping in when your knees shake.","Rematches are where legends are written.","Respect the opponent, then outplay them.","Fight smart, rest hard, come back stronger.","Not every battle needs a sword.","The crowd cheers, but you do the work.","Steel sharpens steel, and rivals sharpen rivals.","Fall seven times, rise with a plan.","Heat in the moment, cool in the head.","The ring remembers who showed up.","No one wins by standing still.","A clash of ideas lights the brightest sparks.","Win with grace, lose with lessons.","Every champion was once a nervous beginner.","Sweat now, celebrate later.","The toughest opponent is yesterday’s you.","Raise your guard and your standards.","Good fights end with good handshakes.","Sparks fly where two wills collide.","Patience wins rounds; nerve wins nights.","The comeback is always stronger than the setback.","Don’t fear the clash; fear never trying.","A true warrior fights for something bigger.","One bold move can change the whole match.","Rivals are just respect wearing armor.","Dust yourself off and square up.","Loud wins fade; quiet discipline lasts.","The final bell proves who trained.","Fight like the crowd is watching, train like nobody is.","Strategy is the sword nobody sees.","Great debates sharpen great minds.","Don’t chase the knockout; chase the lesson.","Even giants started in the first round.","Take the hit, keep the heart.","Bravery isn’t loud; it just keeps going.","Every showdown has a story worth telling.","Two sides, one arena, endless fire.","The strongest guard is a calm mind.","Defeat is just victory warming up.","Step into the ring with your head high.","Honor the fight, honor the fighter.","Real power knows when to hold back.","A good rival never lets you get lazy.","Fast hands, faster thinking.","Today’s underdog is tomorrow’s champion.","Clash today, cheer together tomorrow.","Lace up, show up, never back up.","The best defense is a prepared mind.","Hit the mat, then hit back harder.","Winners study their losses.","A little rivalry keeps the fire lit.","There is no victory without a struggle.","Sharpen your focus before your blade.","Every spar is a chance to grow.","Battles are won before they begin.","Footwork wins the fights nobody notices.","Keep your chin up and your eyes open.","Legends rematch. Quitters don’t.","Stand tall, even when the odds don’t.","Make your opponent earn every inch.","The arena rewards the ones who stay.","Calm hands make the cleanest strikes.","A challenge accepted is half won.","Pressure turns coal into diamonds.","Fire in the heart, ice in the mind.","Your corner believes in you; so should you.","Draw your line, then hold it.","The sweetest wins come from the hardest rounds.","Throw kindness as hard as you throw punches.","Trash talk fades; skill stays.","When in doubt, keep your guard up.","Great fighters listen more than they shout.","Every duel begins with a bow.","Hold your ground and your humor.","One more round is all it takes.","Light the torch, enter the arena.","Make every round count.","Beaten once, beaten twice, never beaten down.","A steady heart beats a swinging fist.","Train the habit, trust the instinct.","Not all heroes carry swords; some carry patience.","Face it head on, then laugh about it later.","Each clash carves out a stronger you.","Victory is built in the quiet hours.","Leave it all in the ring.","The underdog bites back.","Time your strike like a heartbeat.","Cheer for the fight, not just the winner.","Every scar has a good comeback story.","Aim high, but never lower your guard.","Tough rounds build tougher people.","The spark comes first, then the blaze.","A worthy rival is a rare gift.","Never underestimate a patient opponent.","Rise early, train hard, fight fair.","Champions flinch, then charge anyway.","You were built for the big moment.","Be the storm, not the crowd.","Your next round starts right now.","Wits first, muscles second.","Land the point, not the insult.","Strong hearts win quiet wars.","A fierce rival makes a fierce friend.","Roll with it, then roll over them.","Greatness shows up when the bell does.","Hard work swings harder than luck.","Don’t duck the challenge; own it.","Even slow rounds can end in glory.","One brave step beats a hundred plans.","Respect the rules, then break the record.","The arena lights up for the bold.","Keep fighting; the best part is near.","Cuts heal, regrets don’t.","Wear your wins lightly and your losses wisely.","Strength is staying kind under pressure.","The crowd forgets; the effort doesn’t.","Face your opponent like a mirror.","Steady breath, steady blade.","Big comebacks start with small rallies.","Sometimes the bravest move is a retreat.","Make the first move count.","Show them what a rematch looks like.","Fight with your head, finish with your heart.","A good fight is a conversation in motion.","No shortcuts in the ring.","Today’s battle is tomorrow’s bragging rights.","Both fighters leave a little wiser.","Take your shot, then take your bow.","The loudest roar often hides a nervous heart.","You’ve survived every round so far.","Two corners, one respect.","Courage costs nothing and wins everything.","Swords clash, but spirits ride higher.","Pick your side, and give it everything."];
-var deck=[],lastQ="";
-function nextQuote(){
-  if(!deck.length){deck=QUOTES.slice();for(var i=deck.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=deck[i];deck[i]=deck[j];deck[j]=t}if(deck[deck.length-1]===lastQ)deck.reverse()}
-  lastQ=deck.pop();return lastQ;
-}
-var qEl=$("quote");
-function showQuote(first){
-  var txt="“"+nextQuote()+"”";
-  if(first){qEl.textContent=txt;return}
-  qEl.classList.add("out");
-  setTimeout(function(){qEl.textContent=txt;qEl.classList.remove("out")},prefs.fast?0:500);
-}
-showQuote(true);setInterval(showQuote,6500);
-(function(){
-  var L=$("bgfx"),E=["⚔️","🥊","🛡️","🔥","💥","⚡","🏆","🥋","🗡️","👊","💪","🎯","🏹","👑"];
-  for(var i=0;i<22;i++){
-    var s=document.createElement("span");
-    s.textContent=E[Math.floor(Math.random()*E.length)];
-    s.style.left=(Math.random()*95)+"%";
-    s.style.fontSize=(18+Math.random()*30)+"px";
-    s.style.animationDuration=(14+Math.random()*16)+"s";
-    s.style.animationDelay=(-Math.random()*30)+"s";
-    L.appendChild(s);
-  }
-})();
-
-var TERMS=[
-{t:"1. Accepting these terms",p:"By creating an account or using vs, you agree to these rules. If you disagree, do not use the site.",i:["You cannot use vs unless you are at least 13 years old.","You cannot use vs if you were previously removed from it.","You cannot use vs for anything illegal.","You cannot claim you did not read these terms after you agree to them.","You cannot keep using vs after the rules change unless you accept the updated terms."]},
-{t:"2. Accounts and sign-in",p:"Your account is your responsibility.",i:["You cannot create an account with a fake or stolen identity.","You cannot create more than one account per person.","You cannot share your password or let someone else use your account.","You cannot log in to an account that is not yours.","You cannot use a Google account or email address that you do not own.","You cannot try to bypass, skip or break the login screen."]},
-{t:"3. Voting",p:"Every person gets one vote. Fair votes keep vs fun.",i:["You cannot vote more than once.","You cannot make extra accounts to vote again.","You cannot use bots, scripts or automation to vote.","You cannot buy, sell or trade votes.","You cannot pressure, trick or threaten anyone into voting a certain way.","You cannot edit your browser storage or the page code to change vote counts.","You cannot undo or hide your vote by tampering with the site."]},
-{t:"4. The admin area",p:"Admin tools are only for the person the owner trusts with them.",i:["You cannot open the admin area unless the owner gave you the PIN.","You cannot guess, brute-force or try random PINs.","You cannot share the admin PIN with anyone.","You cannot change names, remove views or remove votes without permission.","You cannot use admin powers to punish people unfairly or favor one side.","You cannot reset the votes just to change a result you dislike."]},
-{t:"5. Posting your views",p:"Views are for sharing opinions on the matchup.",i:["You cannot post spam or the same message again and again.","You cannot post ads, promo codes or referral links.","You cannot post links to scams, malware or fake giveaways.","You cannot pretend to be another user, the admin or the owner.","You cannot post gibberish just to fill the page.","You cannot post anything you do not have the right to share."]},
-{t:"6. Harassment and bullying",p:"Rivalry is fine. Targeting people is not.",i:["You cannot insult, bully or target another user.","You cannot threaten anyone, even as a joke.","You cannot follow a person around the site to bother them.","You cannot gang up on someone or encourage others to.","You cannot post messages meant to scare or shame someone.","You cannot encourage anyone to hurt themselves."]},
-{t:"7. Hate and discrimination",p:"Everyone should feel welcome on vs.",i:["You cannot attack people for their race, ethnicity, nationality, religion, gender, sexuality, disability or age.","You cannot use slurs or hateful symbols.","You cannot post or praise extremist groups or ideas.","You cannot make fun of a group of people for who they are.","You cannot spread false claims meant to stir up hate."]},
-{t:"8. Violence and dangerous content",p:"The fight theme is for fun. It is about friendly rivalry, not real harm.",i:["You cannot threaten real violence against anyone.","You cannot praise or celebrate real attacks or attackers.","You cannot share instructions for making weapons or hurting people.","You cannot encourage anyone to commit crimes.","You cannot post graphic injury or gore.","You cannot use vs to organize real fights or dangerous stunts."]},
-{t:"9. Adult and exploitative content",p:"Keep vs safe for everyone.",i:["You cannot post sexual or explicit content.","You cannot post anything that sexualizes minors. This content may be reported to the authorities.","You cannot share private or intimate images of anyone without consent.","You cannot ask for or offer sexual services.","You cannot post content that exploits or endangers children or other vulnerable people."]},
-{t:"10. Privacy and personal information",p:"Respect other people’s privacy and protect your own.",i:["You cannot share another person’s phone number, address, email or ID.","You cannot post private messages or photos without permission.","You cannot collect, scrape or copy other users’ details.","You cannot try to find out who is behind another account.","You cannot post personal details about yourself that could put you at risk.","You cannot use vs to track or stalk anyone."]},
-{t:"11. Security and technical misuse",p:"Do not break the site that everyone shares.",i:["You cannot hack, probe or try to break into vs.","You cannot inject scripts, code or harmful files.","You cannot overload the site with automated requests.","You cannot scrape, copy or mirror the site with bots.","You cannot reverse-engineer vs to cheat or find weak spots.","You cannot spread viruses or malware.","You cannot hide a security problem you found. Report it to the owner instead."]},
-{t:"12. Ownership, enforcement and changes",p:"Content on vs belongs to its owners, and breaking these rules has consequences.",i:["You cannot copy the VS logo, name or design and pass it off as your own.","You cannot post content that infringes someone else’s copyright or trademark.","You cannot claim that vs endorses you, your product or your opinions.","If you break a rule, your posts, votes or account may be removed without warning.","The owner may change or end vs at any time. The site is provided as is, with no promise it will always work.","The owner can update these terms. Using vs after an update means you accept it."]}
-];
-var tPage=0;
-function showTerms(){
-  var p=TERMS[tPage];
-  $("tTitle").textContent=p.t;$("tPage").textContent="Page "+(tPage+1)+" of "+TERMS.length;
-  $("tBody").innerHTML="<p>"+esc(p.p)+"</p><ol>"+p.i.map(function(x){return "<li>"+esc(x)+"</li>"}).join("")+"</ol>"+(tPage===0?"<p>Last updated November 16, 2026.</p>":"");
-  $("tBody").scrollTop=0;$("tPrev").disabled=tPage===0;$("tNext").textContent=tPage===TERMS.length-1?"Done":"Next";
-}
-function openTerms(e){if(e&&e.preventDefault)e.preventDefault();tPage=0;showTerms();$("termsModal").classList.remove("hide");$("tNext").focus()}
-$("tPrev").onclick=function(){if(tPage>0){tPage--;showTerms()}};
-$("tNext").onclick=function(){if(tPage<TERMS.length-1){tPage++;showTerms()}else{$("termsModal").classList.add("hide")}};
-$("tClose").onclick=function(){$("termsModal").classList.add("hide")};
-$("termsBtn").onclick=openTerms;
-Array.prototype.forEach.call(document.querySelectorAll(".tlink"),function(a){a.onclick=openTerms});
-
-})();
-</script>
-</body>
-</html>
+    <div class="row" style="margin-top:14px"><button class="btn primary" id="cYes">Yes, vote</button><button c
