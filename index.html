@@ -133,13 +133,17 @@ input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--lin
 #discoLayer{position:fixed;inset:0;z-index:85;pointer-events:none;mix-blend-mode:screen;opacity:.45;background:conic-gradient(from 0deg,#f0f,#0ff,#ff0,#f0f);animation:disco .8s linear infinite}
 @keyframes disco{to{filter:hue-rotate(360deg)}}
 @keyframes bootspin{to{transform:rotate(360deg)}}
+#announce{position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:95;background:#ff4d6d;color:#fff;font-weight:800;font-size:1.2rem;text-align:center;padding:14px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.wrap.quake{animation:quake .12s linear infinite}
+@keyframes quake{0%{transform:translate(4px,3px)}25%{transform:translate(-5px,-2px)}50%{transform:translate(3px,-4px)}75%{transform:translate(-3px,4px)}100%{transform:translate(4px,3px)}}
+.wrap.flip{transform:rotate(180deg);transition:transform .6s}
 </style>
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js">
 <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js">
 <script>(function(){function box(t){var d=document.createElement("div");d.style.cssText="position:fixed;left:8px;right:8px;top:8px;z-index:9999;background:#b00020;color:#fff;padding:10px 12px;border-radius:10px;font:14px/1.4 system-ui,sans-serif";d.textContent=t;if(document.body){document.body.appendChild(d)}else{document.addEventListener("DOMContentLoaded",function(){document.body.appendChild(d)})}}
-window.addEventListener("error",function(e){box("Site error: "+(e.message||"unknown"))});
-window.addEventListener("unhandledrejection",function(e){box("Site error: "+((e.reason&&e.reason.message)||e.reason))});
+window.__vsBox=box;window.addEventListener("error",function(e){if(window.__vsFailed)return;box("Site error: "+(e.message||"unknown"))});
+window.addEventListener("unhandledrejection",function(e){if(window.__vsFailed)return;box("Site error: "+((e.reason&&e.reason.message)||e.reason))});
 setTimeout(function(){if(!window.__vsLoaded)box("The site is still not loading. Check your connection, try Chrome, or turn off any data saver or ad blocker.")},20000)})();</script>
 </head>
 <body>
@@ -157,6 +161,7 @@ setTimeout(function(){if(!window.__vsLoaded)box("The site is still not loading. 
 </div>
 <canvas id="fxCanvas" class="hide" style="position:fixed;inset:0;z-index:90;pointer-events:none"></canvas>
 <div id="discoLayer" class="hide"></div>
+<div id="announce" class="hide" role="alert"></div>
 <div class="tools">
   <button class="btn" id="themeBtn">Dark mode</button>
   <button class="btn" id="fastBtn" aria-pressed="false">Fast mode: off</button>
@@ -215,6 +220,17 @@ setTimeout(function(){if(!window.__vsLoaded)box("The site is still not loading. 
   </div>
 </section>
 
+<section id="banned" class="auth hide">
+  <div class="card welcome">
+    <h2 class="hello">You’ve been banned</h2>
+    <p class="sub" id="banReason"></p>
+    <label for="appealIn">Appeal</label><input id="appealIn" maxlength="500" placeholder="Tell the admin why you should come back">
+    <p class="err" id="appealMsg" role="alert"></p>
+    <button class="btn primary full" id="appealGo">Send appeal</button>
+    <button class="btn full" id="banOut">Log out</button>
+  </div>
+</section>
+
 <section id="app" class="hide">
   <div class="top">
     <div class="brandrow"><img class="mini" data-logo alt=""><h1 class="logo">v<i>s</i></h1></div>
@@ -248,7 +264,10 @@ setTimeout(function(){if(!window.__vsLoaded)box("The site is still not loading. 
     <div class="row"><input id="tMin" type="number" min="1" max="1440" placeholder="Minutes" aria-label="Timer minutes"><button class="btn primary" id="tStart">Start timer</button><button class="btn" id="tClear">Clear timer</button></div>
     <div class="row" style="margin-top:10px"><button class="btn danger" id="endBattle">End battle and save to history</button></div>
     <h3 style="margin:16px 0 8px">Fun tools</h3>
-    <div class="row"><button class="btn" id="fxFire">🎆 Fireworks</button><button class="btn" id="fxDisco">🪩 Disco mode</button></div>
+    <div class="row"><button class="btn" id="fxFire">🎆 Fireworks</button><button class="btn" id="fxDisco">🪩 Disco</button><button class="btn" id="fxConf">🎉 Confetti</button><button class="btn" id="fxRain">🥊 Emoji rain</button><button class="btn" id="fxQuake">🌋 Earthquake</button><button class="btn" id="fxFlip">🙃 Flip screen</button></div>
+    <div class="row" style="margin-top:10px"><input id="annText" maxlength="120" placeholder="Announcement for everyone" aria-label="Announcement"><button class="btn primary" id="fxAnn">📢 Send</button></div>
+    <div class="row" style="margin-top:10px"><button class="btn danger" id="clrChat">Clear chat</button><button class="btn danger" id="clrViews">Clear views</button></div>
+    <h3 style="margin:16px 0 8px">Banned users and appeals</h3><div id="banList"></div>
     <p class="status" style="text-align:left;margin-top:8px" id="adminMsg"></p>
     <h3 style="margin:18px 0 4px">Votes by user</h3>
     <div id="voterList"></div>
@@ -291,9 +310,21 @@ setTimeout(function(){if(!window.__vsLoaded)box("The site is still not loading. 
 </div>
 
 <script type="module">
-import {initializeApp} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signInWithPopup,GoogleAuthProvider,updateProfile,signOut,sendEmailVerification} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-import {getFirestore,doc,collection,setDoc,addDoc,deleteDoc,getDocs,onSnapshot,query,orderBy,limit,serverTimestamp,writeBatch} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+async function loadFb(src){
+  var v="10.14.1",names=["app","auth","firestore"];
+  return Promise.all(names.map(function(n){
+    return import(src==="g"?"https://www.gstatic.com/firebasejs/"+v+"/firebase-"+n+".js":"https://cdn.jsdelivr.net/npm/firebase@"+v+"/"+n+"/+esm");
+  }));
+}
+let mods;
+try{mods=await loadFb("g")}
+catch(e1){
+  try{mods=await loadFb("j")}
+  catch(e2){window.__vsFailed=true;if(window.__vsBox)window.__vsBox("Could not load Firebase: "+((e1&&e1.message)||e1)+" | "+((e2&&e2.message)||e2));throw e2}
+}
+const {initializeApp}=mods[0];
+const {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signInWithPopup,GoogleAuthProvider,updateProfile,signOut,sendEmailVerification}=mods[1];
+const {getFirestore,doc,collection,setDoc,addDoc,deleteDoc,getDocs,onSnapshot,query,orderBy,limit,serverTimestamp,writeBatch}=mods[2];
 const firebaseConfig={apiKey:"AIzaSyCbMtAZDl1o30MgGVb_EfATVSIdZO4D7-A",authDomain:"versus-0000.firebaseapp.com",projectId:"versus-0000",storageBucket:"versus-0000.firebasestorage.app",messagingSenderId:"408878840441",appId:"1:408878840441:web:f62197d5be678b179fb2a8"};
 (function(){
 window.__vsLoaded=true;
@@ -303,9 +334,9 @@ var LOGO="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAw
 Array.prototype.forEach.call(document.querySelectorAll("img[data-logo]"),function(i){i.src=LOGO});
 var $=function(id){return document.getElementById(id)};
 function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
-function show(id){["auth","google","verify","app"].forEach(function(x){$(x).classList.toggle("hide",x!==id)})}
+function show(id){["auth","google","verify","banned","app"].forEach(function(x){$(x).classList.toggle("hide",x!==id)})}
 var fapp=initializeApp(firebaseConfig),auth=getAuth(fapp),fs=getFirestore(fapp);
-var user=null,names=["Option A","Option B"],votes={},views=[],voterKeys=[],isAdmin=false,mode="login",pending=null,endsAt=null,battles=[],chat=[],wasOpen=true,lastFx=0;
+var user=null,names=["Option A","Option B"],votes={},views=[],voterKeys=[],isAdmin=false,mode="login",pending=null,endsAt=null,battles=[],chat=[],wasOpen=true,lastFx=0,metas={},bansList=[],appeals={},banInfo=null,unsubBan=null,metaOn=false;
 function dname(){return user?(user.displayName||(user.email||"user").split("@")[0]):"Admin"}
 function counts(){var c=[0,0];Object.keys(votes).forEach(function(k){var v=votes[k].choice;if(v===0||v===1)c[v]++});return c}
 function adminFail(e){$("adminMsg").textContent=e&&e.code==="permission-denied"?"Only the admin account can do that. Log in with the admin Google account first.":"Something went wrong. Please try again."}
@@ -323,7 +354,7 @@ function authMsg(e){var c=(e&&e.code)||"";
 onSnapshot(doc(fs,"config","main"),function(s){if(s.exists()){var d=s.data();if(d.names)names=d.names;endsAt=d.endsAt||null}render();tick()},function(e){console.error(e)});
 onSnapshot(query(collection(fs,"battles"),orderBy("endedAt","desc"),limit(50)),function(s){battles=[];s.forEach(function(d){battles.push(d.data())});renderPrev()},function(e){console.error(e)});
 onSnapshot(query(collection(fs,"chat"),orderBy("ts","desc"),limit(60)),function(s){chat=[];s.forEach(function(d){var x=d.data();x.id=d.id;chat.push(x)});renderChat()},function(e){console.error(e)});
-onSnapshot(doc(fs,"fx","current"),function(s){if(!s.exists())return;var d=s.data(),t=d.ts&&d.ts.toMillis?d.ts.toMillis():0;if(t&&t!==lastFx&&Date.now()-t<12000){lastFx=t;runFx(d.type)}},function(e){console.error(e)});
+onSnapshot(doc(fs,"fx","current"),function(s){if(!s.exists())return;var d=s.data(),t=d.ts&&d.ts.toMillis?d.ts.toMillis():0;if(t&&t!==lastFx&&Date.now()-t<12000){lastFx=t;runFx(d.type,d.text)}},function(e){console.error(e)});
 onSnapshot(collection(fs,"votes"),function(s){votes={};s.forEach(function(d){votes[d.id]=d.data()});render()},function(e){console.error(e)});
 onSnapshot(query(collection(fs,"views"),orderBy("ts","desc"),limit(100)),function(s){views=[];s.forEach(function(d){var x=d.data();x.id=d.id;views.push(x)});renderViews()},function(e){console.error(e)});
 
@@ -363,15 +394,28 @@ $("gGo").onclick=async function(){
   try{await signInWithPopup(auth,new GoogleAuthProvider());sfx("success")}catch(e){$("gErr").textContent=authMsg(e)}
 };
 $("logout").onclick=function(){isAdmin=false;signOut(auth)};
-onAuthStateChanged(auth,function(u){
-  user=u;
-  if(u&&!u.emailVerified){$("vSub").textContent="We sent a link to "+u.email+". Open it, then come back and tap the button below.";show("verify")}
-  else{show(u||isAdmin?"app":"auth")}
+function route(){
+  if(!user){show(isAdmin?"app":"auth")}
+  else if(!user.emailVerified){$("vSub").textContent="We sent a link to "+user.email+". Open it, then come back and tap the button below.";show("verify")}
+  else if(banInfo){$("banReason").textContent=banInfo.reason?"Reason: "+banInfo.reason:"You can send an appeal below.";show("banned")}
+  else{show("app")}
   render();
+}
+onAuthStateChanged(auth,function(u){
+  user=u;banInfo=null;metaOn=false;
+  if(unsubBan){unsubBan();unsubBan=null}
+  if(u){unsubBan=onSnapshot(doc(fs,"bans",u.uid),function(s){banInfo=s.exists()?s.data():null;route()},function(){})}
+  route();
 });
+$("banOut").onclick=function(){signOut(auth)};
+$("appealGo").onclick=async function(){
+  var t=$("appealIn").value.trim();if(!t||!user)return;
+  try{await setDoc(doc(fs,"appeals",user.uid),{text:t.slice(0,500),name:dname(),ts:serverTimestamp()});$("appealMsg").textContent="Appeal sent. The admin will review it.";$("appealIn").value=""}
+  catch(e){$("appealMsg").textContent="Could not send. You may have already sent an appeal."}
+};
 $("vDone").onclick=async function(){
   try{await user.reload();await user.getIdToken(true);user=auth.currentUser;
-    if(user.emailVerified){$("vErr").textContent="";show("app");render();sfx("success")}
+    if(user.emailVerified){$("vErr").textContent="";route();sfx("success")}
     else{$("vErr").textContent="Not verified yet. Open the link in your email first (check spam)."}
   }catch(e){$("vErr").textContent=authMsg(e)}
 };
@@ -380,6 +424,7 @@ $("vOut").onclick=function(){signOut(auth)};
 
 /* render */
 function render(){
+  if(isAdmin&&user&&!metaOn)attachAdmin();
   var c=counts(),mine=user&&votes[user.uid]?votes[user.uid].choice:null,t=c[0]+c[1];
   $("who").textContent=dname();
   $("nA").textContent=names[0];$("nB").textContent=names[1];$("cA").textContent=c[0];$("cB").textContent=c[1];
@@ -393,32 +438,32 @@ function render(){
     if(document.activeElement!==$("eA")&&document.activeElement!==$("eB")){$("eA").value=names[0];$("eB").value=names[1]}
     renderVoters();
   }
-  renderViews();renderChat();renderPrev();
+  renderViews();renderChat();renderPrev();renderBans();
 }
 function renderVoters(){
   var box=$("voterList");
   voterKeys=Object.keys(votes).filter(function(k){var v=votes[k].choice;return v===0||v===1});
   if(!voterKeys.length){box.innerHTML='<p class="empty">No votes yet.</p>';return}
   box.innerHTML=voterKeys.map(function(k,i){var v=votes[k];
-    return '<div class="view"><div><p>'+esc(v.name||"User")+' voted for '+esc(names[v.choice])+'</p></div><button class="btn danger small" data-i="'+i+'">Remove vote</button></div>';
+    return '<div class="view"><div><p>'+esc(v.name||"User")+' voted for '+esc(names[v.choice])+'</p></div><button class="btn danger small" data-i="'+i+'">Remove vote</button><button class="btn small" data-tban="'+i+'">Ban</button></div>';
   }).join("");
 }
 function renderViews(){
   var box=$("viewList");
   if(!views.length){box.innerHTML='<p class="empty">No views yet. Be the first to post.</p>';return}
   box.innerHTML=views.map(function(v,i){
-    return '<div class="view"><div><p>'+esc(v.text)+'</p><span>'+esc(v.by||"")+'</span></div>'+
-      (isAdmin?'<button class="btn danger small" data-del="'+i+'">Remove</button>':'')+'</div>';
+    return '<div class="view"><div><p>'+esc(v.text)+'</p><span>'+esc(v.by||"")+(isAdmin&&v.uid==="anon"&&metas[v.id]?" (really "+esc(metas[v.id].name)+")":"")+'</span></div>'+
+      (isAdmin?'<button class="btn danger small" data-del="'+i+'">Remove</button><button class="btn small" data-vban="'+i+'">Ban</button>':'')+'</div>';
   }).join("");
 }
 $("viewList").onclick=async function(e){
   var i=e.target.getAttribute&&e.target.getAttribute("data-del");
   if(i===null||i===undefined||!isAdmin||!views[+i])return;
-  try{await deleteDoc(doc(fs,"views",views[+i].id))}catch(x){adminFail(x)}
+  try{var wb=writeBatch(fs);wb.delete(doc(fs,"views",views[+i].id));wb.delete(doc(fs,"viewMeta",views[+i].id));await wb.commit()}catch(x){adminFail(x)}
 };
 $("postView").onclick=async function(){
   var t=$("newView").value.trim();if(!t||!user)return;$("newView").value="";
-  try{await addDoc(collection(fs,"views"),{text:t,by:$("anonChk").checked?"Anonymous":dname(),uid:user.uid,ts:serverTimestamp()})}catch(e){alert("Could not post your view. Please try again.")}
+  try{await postViewDoc(t)}catch(e){alert("Could not post your view. Please try again.")}
 };
 
 /* voting */
@@ -605,7 +650,7 @@ function renderChat(){
   var b=$("chatList");
   if(!chat.length){b.innerHTML='<p class="empty">No messages yet. Say hi.</p>';return}
   b.innerHTML=chat.slice().reverse().map(function(m){
-    return '<div class="view"><div><p>'+esc(m.text)+'</p><span>'+esc(m.by||"")+'</span></div>'+(isAdmin?'<button class="btn danger small" data-cdel="'+chat.indexOf(m)+'">Remove</button>':'')+'</div>';
+    return '<div class="view"><div><p>'+esc(m.text)+'</p><span>'+esc(m.by||"")+'</span></div>'+(isAdmin?'<button class="btn danger small" data-cdel="'+chat.indexOf(m)+'">Remove</button><button class="btn small" data-cban="'+chat.indexOf(m)+'">Ban</button>':'')+'</div>';
   }).join("");
   b.scrollTop=b.scrollHeight;
 }
@@ -642,10 +687,19 @@ $("endBattle").onclick=async function(){
     await wb.commit();$("adminMsg").textContent="Battle saved to Previous battles."
   }catch(x){adminFail(x)}
 };
-async function fireFx(type){try{await setDoc(doc(fs,"fx","current"),{type:type,ts:serverTimestamp()})}catch(x){adminFail(x)}}
+async function fireFx(type,text){try{await setDoc(doc(fs,"fx","current"),{type:type,text:text||"",ts:serverTimestamp()})}catch(x){adminFail(x)}}
 $("fxFire").onclick=function(){fireFx("fireworks")};
 $("fxDisco").onclick=function(){fireFx("disco")};
-function runFx(type){if(prefs.fast)return;if(type==="disco")disco();else fireworks()}
+function runFx(type,text){
+  if(type==="announce"){announce(text||"");return}
+  if(prefs.fast)return;
+  if(type==="disco")disco();
+  else if(type==="confetti")rainFx(null);
+  else if(type==="rain")rainFx(["🥊","⚔️","🔥","💥","👑","🏆"]);
+  else if(type==="quake")quake();
+  else if(type==="flip")flip();
+  else fireworks();
+}
 function disco(){var l=$("discoLayer");l.classList.remove("hide");sfx("vote");setTimeout(function(){l.classList.add("hide")},15000)}
 function fireworks(){
   var c=$("fxCanvas"),x=c.getContext("2d"),ps=[],end=Date.now()+6000;
@@ -657,6 +711,86 @@ function fireworks(){
     x.clearRect(0,0,c.width,c.height);
     ps=ps.filter(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.vx*=.99;p.l--;if(p.l<=0)return false;
       x.fillStyle="hsla("+p.h+",100%,60%,"+Math.min(1,p.l/40)+")";x.beginPath();x.arc(p.x,p.y,2.4,0,6.283);x.fill();return true});
+    if(Date.now()>=end)clearInterval(iv);
+    if(Date.now()<end||ps.length){requestAnimationFrame(loop)}else{c.classList.add("hide")}
+  })();
+}
+
+/* anonymous posts, bans, more admin tools */
+async function postViewDoc(t){
+  if(!$("anonChk").checked){return addDoc(collection(fs,"views"),{text:t,by:dname(),uid:user.uid,ts:serverTimestamp()})}
+  var r=doc(collection(fs,"views")),wb=writeBatch(fs);
+  wb.set(r,{text:t,by:"Anonymous",uid:"anon",ts:serverTimestamp()});
+  wb.set(doc(fs,"viewMeta",r.id),{uid:user.uid,name:dname(),ts:serverTimestamp()});
+  return wb.commit();
+}
+function attachAdmin(){
+  metaOn=true;
+  onSnapshot(collection(fs,"viewMeta"),function(s){metas={};s.forEach(function(d){metas[d.id]=d.data()});renderViews()},function(){});
+  onSnapshot(collection(fs,"bans"),function(s){bansList=[];s.forEach(function(d){var x=d.data();x.uid=d.id;bansList.push(x)});renderBans()},function(){});
+  onSnapshot(collection(fs,"appeals"),function(s){appeals={};s.forEach(function(d){appeals[d.id]=d.data()});renderBans()},function(){});
+}
+async function banUser(uid,name){
+  if(!uid||uid==="anon"){$("adminMsg").textContent="Could not find that user.";return}
+  var r=prompt("Ban "+(name||"this user")+"? Type a reason (optional):");
+  if(r===null)return;
+  try{await setDoc(doc(fs,"bans",uid),{name:name||"User",reason:r.slice(0,200),ts:serverTimestamp()});$("adminMsg").textContent="Banned "+(name||"the user")+"."}catch(x){adminFail(x)}
+}
+async function unban(uid){
+  try{var wb=writeBatch(fs);wb.delete(doc(fs,"bans",uid));wb.delete(doc(fs,"appeals",uid));await wb.commit();$("adminMsg").textContent="User unbanned. They can rejoin now."}catch(x){adminFail(x)}
+}
+function renderBans(){
+  var b=$("banList");
+  if(!bansList.length){b.innerHTML='<p class="empty">No banned users.</p>';return}
+  b.innerHTML=bansList.map(function(x,i){var a=appeals[x.uid];
+    return '<div class="view"><div><p>'+esc(x.name||"User")+(x.reason?" · "+esc(x.reason):"")+'</p><span>'+(a?"Appeal: "+esc(a.text):"No appeal yet")+'</span></div><button class="btn small" data-unban="'+i+'">Unban</button></div>';
+  }).join("");
+}
+$("banList").onclick=function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-unban");
+  if(i===null||i===undefined||!isAdmin)return;
+  var x=bansList[+i];if(x&&confirm("Unban "+(x.name||"this user")+"? They will be able to rejoin."))unban(x.uid);
+};
+$("viewList").addEventListener("click",function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-vban");
+  if(i===null||i===undefined||!isAdmin)return;
+  var v=views[+i];if(!v)return;var m=metas[v.id];
+  if(v.uid==="anon")banUser(m&&m.uid,m&&m.name);else banUser(v.uid,v.by);
+});
+$("chatList").addEventListener("click",function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-cban");
+  if(i===null||i===undefined||!isAdmin)return;
+  var m=chat[+i];if(m)banUser(m.uid,m.by);
+});
+$("voterList").addEventListener("click",function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-tban");
+  if(i===null||i===undefined||!isAdmin)return;
+  var k=voterKeys[+i];if(k&&votes[k])banUser(k,votes[k].name);
+});
+async function clearCol(n,label){
+  if(!confirm("Delete all "+label+"?"))return;
+  try{var s=await getDocs(collection(fs,n)),wb=writeBatch(fs);s.forEach(function(d){wb.delete(d.ref)});await wb.commit();$("adminMsg").textContent="Cleared "+label+"."}catch(x){adminFail(x)}
+}
+$("clrChat").onclick=function(){clearCol("chat","chat messages")};
+$("clrViews").onclick=function(){clearCol("views","views")};
+$("fxConf").onclick=function(){fireFx("confetti")};
+$("fxRain").onclick=function(){fireFx("rain")};
+$("fxQuake").onclick=function(){fireFx("quake")};
+$("fxFlip").onclick=function(){fireFx("flip")};
+$("fxAnn").onclick=function(){var t=$("annText").value.trim();if(t){fireFx("announce",t);$("annText").value=""}};
+function announce(t){var a=$("announce");a.textContent="📢 "+t;a.classList.remove("hide");sfx("success");setTimeout(function(){a.classList.add("hide")},9000)}
+function quake(){var w=document.querySelector(".wrap");w.classList.add("quake");sfx("vote");setTimeout(function(){w.classList.remove("quake")},4000)}
+function flip(){var w=document.querySelector(".wrap");w.classList.add("flip");setTimeout(function(){w.classList.remove("flip")},8000)}
+function rainFx(chars){
+  var c=$("fxCanvas"),x=c.getContext("2d"),ps=[],end=Date.now()+6000;
+  c.width=innerWidth;c.height=innerHeight;c.classList.remove("hide");sfx("vote");
+  function add(){for(var i=0;i<4;i++)ps.push({x:Math.random()*c.width,y:-20,vy:2+Math.random()*3,vx:Math.random()*2-1,s:18+Math.random()*16,c:chars?chars[Math.floor(Math.random()*chars.length)]:null,h:Math.random()*360,r:Math.random()*6})}
+  var iv=setInterval(add,60);
+  (function loop(){
+    x.clearRect(0,0,c.width,c.height);
+    ps=ps.filter(function(p){p.y+=p.vy;p.x+=p.vx;p.r+=.1;if(p.y>c.height+30)return false;
+      if(p.c){x.font=p.s+"px serif";x.fillText(p.c,p.x,p.y)}else{x.fillStyle="hsl("+p.h+",100%,60%)";x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillRect(-4,-2,9,5);x.restore()}
+      return true});
     if(Date.now()>=end)clearInterval(iv);
     if(Date.now()<end||ps.length){requestAnimationFrame(loop)}else{c.classList.add("hide")}
   })();
