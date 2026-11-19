@@ -156,16 +156,14 @@ select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--li
 #toasts{position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:96;display:flex;flex-direction:column;gap:8px;pointer-events:none;align-items:center}
 .toast{background:var(--text);color:var(--bg);padding:10px 16px;border-radius:14px;font-weight:600;max-width:90%;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:popIn .4s cubic-bezier(.2,1.5,.4,1)}
 </style>
-<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js">
-<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js">
-<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js">
 <script>(function(){function box(t){var d=document.createElement("div");d.style.cssText="position:fixed;left:8px;right:8px;top:8px;z-index:9999;background:#b00020;color:#fff;padding:10px 12px;border-radius:10px;font:14px/1.4 system-ui,sans-serif";d.textContent=t;if(document.body){document.body.appendChild(d)}else{document.addEventListener("DOMContentLoaded",function(){document.body.appendChild(d)})}}
 window.__vsBox=box;window.addEventListener("error",function(e){if(window.__vsFailed)return;box("Site error: "+(e.message||"unknown"))});
 window.addEventListener("unhandledrejection",function(e){if(window.__vsFailed)return;box("Site error: "+((e.reason&&e.reason.message)||e.reason))});
 setTimeout(function(){if(!window.__vsLoaded)box("Still loading after 45 seconds. Your connection looks slow. Keep waiting, or try Wi-Fi or Chrome.")},45000)})();</script>
-<script>(function(){var s=0,t=setInterval(function(){s++;var e=document.getElementById("bootT");if(!e){clearInterval(t);return}e.textContent=s+"s · "+(window.__vsStage||"waiting for the site code")},1000)})();</script>
+<script>(function(){var s=0,t=setInterval(function(){s++;var e=document.getElementById("bootT");if(!e){clearInterval(t);return}e.textContent=s+"s · "+(window.__vsStage||"downloading the page")},1000)})();</script>
 </head>
 <body>
+<script>window.__vsStage="top of page loaded"</script>
 <div id="boot" style="position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0f0d1f;color:#fff;font:600 1.1rem system-ui,sans-serif;text-align:center;padding:20px"><div style="width:42px;height:42px;border:4px solid #ffffff33;border-top-color:#ff7a93;border-radius:50%;animation:bootspin 1s linear infinite"></div>Loading vs…<span style="font-weight:400;font-size:.9rem;opacity:.7">Slow connection? Give it a few seconds.</span><span id="bootT" style="font-weight:400;font-size:.85rem;opacity:.6"></span></div>
 <div class="intro wait" id="intro" aria-hidden="true">
   <div class="stage">
@@ -232,4 +230,7 @@ setTimeout(function(){if(!window.__vsLoaded)box("Still loading after 45 seconds.
 <section id="verify" class="auth hide">
   <div class="card welcome">
     <h2 class="hello">Check your email</h2>
-    <p class="sub" id="vSub">We sent yo
+    <p class="sub" id="vSub">We sent you a link. Open it, then come back and tap the button below.</p>
+    <p class="err" id="vErr" role="alert"></p>
+    <button class="btn primary full" id="vDone">I’ve verified my email</button>
+    <button class="btn full" id="vResend">Sen
