@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>vs</title>
+<script>try{var _p=JSON.parse(localStorage.getItem("vs-prefs")||"{}"),_r=document.documentElement;if(_p.theme)_r.setAttribute("data-theme",_p.theme);if(_p.fast)_r.classList.add("fast")}catch(e){}</script>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f3ff;--surface:#fff;--text:#16132b;--muted:#6b6785;--line:#dcd8f0;--a:#2f4bff;--b:#ff4d6d;--ok:#13a56b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f0d1f;--surface:#1a1731;--text:#f1eeff;--muted:#a29ec2;--line:#2e2a52;--a:#6f85ff;--b:#ff7a93}}
+:root[data-theme="dark"]{--bg:#0f0d1f;--surface:#1a1731;--text:#f1eeff;--muted:#a29ec2;--line:#2e2a52;--a:#6f85ff;--b:#ff7a93}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;line-height:1.4}
+button,input{font:inherit;color:inherit}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 48px}
+.logo{font-weight:800;font-size:2.4rem;letter-spacing:-.04em;margin:0}
+.logo i{font-style:normal;color:var(--b)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:20px}
+.top .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.pill{font-size:.85rem;color:var(--muted)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:10px 16px;border-radius:10px;cursor:pointer;font-weight:600}
+.btn:focus-visible,input:focus-visible{outline:3px solid var(--a);outline-offset:2px}
+.btn.primary{background:var(--text);color:var(--bg);border-color:var(--text)}
+.btn.danger{color:var(--b);border-color:var(--b)}
+.btn.small{padding:6px 10px;font-size:.85rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px}
+.auth{max-width:400px;margin:8vh auto 0}
+.tabs{display:flex;gap:6px;margin:0 0 16px}
+.tabs button{flex:1}
+.tabs .on{background:var(--text);color:var(--bg);border-color:var(--text)}
+label{display:block;font-size:.9rem;font-weight:600;margin:12px 0 4px}
+input{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg)}
+.full{width:100%;margin-top:16px}
+.or{text-align:center;color:var(--muted);font-size:.85rem;margin:14px 0 0}
+.google{display:flex;gap:10px;align-items:center;justify-content:center}
+.err{color:var(--b);font-size:.9rem;min-height:1.2em;margin:10px 0 0}
+.arena{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:stretch}
+.side{border-radius:16px;padding:22px 14px;text-align:center;color:#fff;display:flex;flex-direction:column;justify-content:space-between;gap:14px;min-height:240px}
+.side.a{background:var(--a)}.side.b{background:var(--b)}
+.side h2{margin:0;font-size:clamp(1.4rem,6vw,2.2rem);font-weight:800;letter-spacing:-.03em;word-break:break-word}
+.count{font-size:2.6rem;font-weight:800;line-height:1}
+.count small{display:block;font-size:.8rem;font-weight:400;opacity:.85}
+.side .btn{background:#fff;color:#16132b;border-color:#fff}
+.side .btn[disabled]{opacity:.55;cursor:default}
+.side.mine{outline:4px solid var(--ok);outline-offset:3px}
+.vs{align-self:center;font-weight:800;font-size:1.3rem;color:var(--muted)}
+.bar{height:10px;border-radius:99px;background:var(--b);overflow:hidden;margin:18px 0 6px}
+.bar div{height:100%;background:var(--a);transition:width .4s}
+.status{color:var(--muted);font-size:.95rem;text-align:center;margin:0}
+.admin{margin-top:20px;border-color:var(--a)}
+.admin h3,.views h3{margin:0 0 12px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row input{flex:1;min-width:120px}
+.views{margin-top:20px}
+.view{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.view p{margin:0;word-break:break-word}.view span{font-size:.8rem;color:var(--muted)}
+.empty{color:var(--muted);margin:0}
+.modal{position:fixed;inset:0;background:rgba(10,8,30,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:80}
+.modal .card{max-width:380px;width:100%}
+.modal h3{margin:0 0 6px;font-size:1.3rem}
+.hide{display:none!important}
+@media (max-width:520px){.arena{grid-template-columns:1fr}.vs{text-align:center}.side{min-height:190px}}
+:root{--warm:#fff1e8;--glow:#ff8a5c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--warm:#2b1f3a}}
+:root[data-theme="dark"]{--warm:#2b1f3a}
+.welcome{position:relative;background:linear-gradient(160deg,var(--surface),var(--warm));border-radius:24px;padding:28px 24px;box-shadow:0 14px 40px rgba(255,138,92,.2)}
+.hello{margin:0;font-size:1.7rem;font-weight:800;letter-spacing:-.02em}
+.sub{margin:6px 0 18px;color:var(--muted)}
+.welcome .btn.primary{background:var(--glow);border-color:var(--glow);color:#2a0f06}
+.welcome .tabs .on{background:var(--glow);border-color:var(--glow);color:#2a0f06}
+.welcome input:focus-visible{outline-color:var(--glow)}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;animation:flash .6s ease-out .6s forwards}
+@keyframes flash{0%{opacity:1}100%{opacity:0}}
+.tools{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:30;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tools .btn{padding:7px 12px;font-size:.85rem;box-shadow:0 2px 10px rgba(0,0,0,.18)}
+.intro{position:fixed;inset:0;z-index:100;background:#0f0d1f;overflow:hidden;cursor:pointer;animation:introOut .35s ease 2.1s forwards}
+.stage{position:absolute;inset:0;animation:shake .35s linear .6s}
+.sw{position:absolute;left:50%;top:44%;width:min(320px,70vw);margin-top:-30px;transform-origin:64% 50%;animation:swl 2.4s cubic-bezier(.4,0,.8,.5) forwards}
+.sw svg{display:block;width:100%;height:auto}
+.sw.l{margin-left:calc(-.64*min(320px,70vw))}
+.sw.r{margin-left:calc(-.64*min(320px,70vw));animation-name:swr}
+.introvs{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.introvs img{width:min(300px,68vw);height:auto;aspect-ratio:1;opacity:0;animation:pop .45s cubic-bezier(.2,1.6,.4,1) .75s forwards;filter:drop-shadow(0 0 24px rgba(255,255,255,.35))}
+
+.impact{position:absolute;inset:0;opacity:0;background:radial-gradient(circle,#fff 0 9%,transparent 10%),repeating-conic-gradient(#000 0 3deg,#fff 3deg 9deg);animation:impact .4s steps(1,end) .6s forwards}
+@keyframes swl{0%{transform:translateX(-62vw) rotate(-88deg)}25%{transform:translateX(0) rotate(-32deg)}32%{transform:translateX(-14px) rotate(-36deg)}100%{transform:translateX(-6px) rotate(-33deg)}}
+@keyframes swr{0%{transform:scaleX(-1) translateX(-62vw) rotate(-88deg)}25%{transform:scaleX(-1) translateX(0) rotate(-32deg)}32%{transform:scaleX(-1) translateX(-14px) rotate(-36deg)}100%{transform:scaleX(-1) translateX(-6px) rotate(-33deg)}}
+@keyframes impact{0%{opacity:1;filter:none}35%{opacity:1;filter:invert(1)}65%{opacity:1;filter:none}85%{opacity:.5;filter:none}100%{opacity:0}}
+@keyframes shake{0%,100%{transform:none}20%{transform:translate(-10px,6px)}40%{transform:translate(9px,-7px)}60%{transform:translate(-6px,-4px)}80%{transform:translate(5px,5px)}}
+@keyframes pop{from{opacity:0;transform:scale(.3)}to{opacity:1;transform:scale(1)}}
+@keyframes introOut{to{opacity:0;visibility:hidden}}
+.fast .intro{display:none}
+.bgfx{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.bgfx span{position:absolute;bottom:-60px;opacity:.22;animation:floatUp linear infinite}
+@keyframes floatUp{0%{transform:translate(0,0) rotate(-12deg)}50%{transform:translate(24px,-55vh) rotate(12deg)}100%{transform:translate(-10px,-115vh) rotate(-8deg)}}
+.wrap{position:relative;z-index:1}
+.quote{max-width:560px;margin:0 auto 6px;text-align:center;font-style:italic;font-size:1.05rem;color:var(--text);opacity:.85;min-height:2.8em;transition:opacity .5s}
+.quote.out{opacity:0}
+.fast .bgfx{display:none}
+@media (prefers-reduced-motion:reduce){.bgfx{display:none}}
+.intro.wait,.intro.wait *{animation-play-state:paused!important}
+.intro.wait .tapgo{animation-play-state:running!important}
+.tapgo{display:none;position:absolute;left:0;right:0;bottom:14%;text-align:center;color:#fff;font-weight:600;font-size:1.1rem;pointer-events:none;animation:blink 1.2s ease-in-out infinite}
+@keyframes blink{50%{opacity:.35}}
+.sparks{position:absolute;left:50%;top:44%;width:0;height:0}
+.sparks span{position:absolute;left:0;top:0;width:70px;height:4px;margin-top:-2px;border-radius:2px;background:linear-gradient(90deg,#fff,#ffd36b,transparent);transform-origin:0 50%;transform:rotate(var(--r)) scaleX(0);opacity:0;animation:spark .45s ease-out .6s forwards}
+@keyframes spark{0%{opacity:1;transform:rotate(var(--r)) translateX(8px) scaleX(.2)}100%{opacity:0;transform:rotate(var(--r)) translateX(80px) scaleX(1.2)}}
+.fast *{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){.bar div{transition:none}.intro{display:none}}
+.brand{display:block;margin:0 auto;width:min(190px,52vw);height:auto;aspect-ratio:1}
+.mini{width:44px;height:44px;border-radius:50%}
+.brandrow{display:flex;align-items:center;gap:10px}
+.circle{width:38px;height:38px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:1.15rem;line-height:1}
+.adminKey{position:absolute;top:14px;right:14px}
+.btn[disabled]{opacity:.5;cursor:default}
+.modal .terms{display:flex;flex-direction:column;max-width:520px;max-height:86vh}
+.thead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.thead h3{margin:0}
+.tbody{overflow:auto;margin-top:8px}
+.tbody p{margin:0 0 8px;color:var(--muted)}
+.tbody ol{padding-left:22px;margin:8px 0}
+.tbody li{margin:0 0 10px}
+.agree{display:flex;gap:8px;align-items:flex-start;font-weight:400;margin:14px 0 0}
+.agree input{width:auto;margin-top:3px}
+.agree a{color:var(--glow);font-weight:600}
+.nav{display:flex;gap:6px;margin:0 0 16px}
+.nav .btn{flex:1}
+.nav .on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.timer{text-align:center;font-weight:800;font-size:1.3rem;margin:14px 0 0;min-height:1.4em}
+.chatbox{max-height:50vh;overflow:auto}
+#discoLayer{position:fixed;inset:0;z-index:85;pointer-events:none;mix-blend-mode:screen;opacity:.45;background:conic-gradient(from 0deg,#f0f,#0ff,#ff0,#f0f);animation:disco .8s linear infinite}
+@keyframes disco{to{filter:hue-rotate(360deg)}}
+@keyframes bootspin{to{transform:rotate(360deg)}}
+#announce{position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:95;background:#ff4d6d;color:#fff;font-weight:800;font-size:1.2rem;text-align:center;padding:14px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.wrap.quake{animation:quake .12s linear infinite}
+@keyframes quake{0%{transform:translate(4px,3px)}25%{transform:translate(-5px,-2px)}50%{transform:translate(3px,-4px)}75%{transform:translate(-3px,4px)}100%{transform:translate(4px,3px)}}
+.wrap.flip{transform:rotate(180deg);transition:transform .6s}
+.tlink2{display:block;text-align:right;font-size:.9rem;margin-top:8px;color:var(--glow);font-weight:600}
+select{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font:inherit;color:inherit}
+.pinbox{border:1px solid var(--glow);border-radius:12px;padding:8px 12px;margin-bottom:12px;background:var(--warm)}
+.ttl{display:inline-block;font-size:.72rem;font-weight:800;padding:1px 8px;border-radius:99px;margin-left:6px;border:1px solid currentColor;vertical-align:middle}
+.a-pulse{animation:tpulse 1.4s ease-in-out infinite}
+@keyframes tpulse{50%{box-shadow:0 0 18px currentColor;transform:scale(1.07)}}
+.a-rainbow{animation:train 2s linear infinite}
+@keyframes train{to{filter:hue-rotate(360deg)}}
+.a-shimmer{background-image:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);background-size:200% 100%;animation:tshim 1.6s linear infinite}
+@keyframes tshim{from{background-position:200% 0}to{background-position:-200% 0}}
+.msg{background:var(--bg);border:1px solid var(--line);border-radius:16px 16px 16px 4px;padding:9px 12px;margin:0 0 8px;max-width:90%;animation:popIn .35s cubic-bezier(.2,1.5,.4,1)}
+.msg.mine{margin-left:auto;border-radius:16px 16px 4px 16px;background:linear-gradient(135deg,var(--a),var(--b));color:#fff;border-color:transparent}
+.mh{font-size:.82rem}.mt{word-break:break-word;margin-top:2px}.mreal{font-size:.75rem;opacity:.75;margin-left:6px}
+@keyframes popIn{from{opacity:0;transform:scale(.7) translateY(10px)}to{opacity:1;transform:none}}
+.emojibar{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.emojibar button{border:0;background:transparent;font-size:1.5rem;cursor:pointer;padding:4px;border-radius:8px}
+#toasts{position:fixed;left:10px;right:10px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:96;display:flex;flex-direction:column;gap:8px;pointer-events:none;align-items:center}
+.toast{background:var(--text);color:var(--bg);padding:10px 16px;border-radius:14px;font-weight:600;max-width:90%;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:popIn .4s cubic-bezier(.2,1.5,.4,1)}
+#adminPanel{position:fixed;inset:0;z-index:70;margin:0;border-radius:0;overflow:auto;border:0;background:var(--surface);padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 28px)}
+#adminFab{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:40;font-weight:700;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.prank{position:fixed;inset:0;z-index:97;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;text-align:center;padding:20px;color:#fff;pointer-events:none}
+.prank.dark{background:#000}.prank.red{background:#b00020}
+</style>
+<script>(function(){function box(t){var d=document.createElement("div");d.style.cssText="position:fixed;left:8px;right:8px;top:8px;z-index:9999;background:#b00020;color:#fff;padding:10px 12px;border-radius:10px;font:14px/1.4 system-ui,sans-serif";d.textContent=t;if(document.body){document.body.appendChild(d)}else{document.addEventListener("DOMContentLoaded",function(){document.body.appendChild(d)})}}
+window.__vsBox=box;window.addEventListener("error",function(e){if(window.__vsFailed)return;box("Site error: "+(e.message||"unknown"))});
+window.addEventListener("unhandledrejection",function(e){if(window.__vsFailed)return;box("Site error: "+((e.reason&&e.reason.message)||e.reason))});
+setTimeout(function(){if(!window.__vsLoaded)box("Still loading after 45 seconds. Your connection looks slow. Keep waiting, or try Wi-Fi or Chrome.")},45000)})();</script>
+<script>(function(){var s=0,t=setInterval(function(){s++;var e=document.getElementById("bootT");if(!e){clearInterval(t);return}e.textContent=s+"s · "+(window.__vsStage||"downloading the page")},1000)})();</script>
+</head>
+<body>
+<script>window.__vsStage="top of page loaded"</script>
+<div id="boot" style="position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0f0d1f;color:#fff;font:600 1.1rem system-ui,sans-serif;text-align:center;padding:20px"><div style="width:42px;height:42px;border:4px solid #ffffff33;border-top-color:#ff7a93;border-radius:50%;animation:bootspin 1s linear infinite"></div>Loading vs… <span style="font-weight:400;font-size:.8rem;opacity:.5">build 22-Nov-B</span><span style="font-weight:400;font-size:.9rem;opacity:.7">Slow connection? Give it a few seconds.</span><span id="bootT" style="font-weight:400;font-size:.85rem;opacity:.6"></span></div>
+<div class="intro wait" id="intro" aria-hidden="true">
+  <div class="stage">
+    <div class="sw l"><svg viewBox="0 0 320 60"><polygon points="92,22 300,26 318,30 300,34 92,38" fill="#e6ebff" stroke="#9fb0ff" stroke-width="2"/><rect x="78" y="8" width="14" height="44" rx="3" fill="#6f85ff"/><rect x="24" y="25" width="54" height="10" fill="#3a4cc7"/><circle cx="18" cy="30" r="9" fill="#6f85ff"/></svg></div>
+    <div class="sw r"><svg viewBox="0 0 320 60"><polygon points="92,22 300,26 318,30 300,34 92,38" fill="#ffe6ec" stroke="#ff9fb3" stroke-width="2"/><rect x="78" y="8" width="14" height="44" rx="3" fill="#ff7a93"/><rect x="24" y="25" width="54" height="10" fill="#c7364f"/><circle cx="18" cy="30" r="9" fill="#ff7a93"/></svg></div>
+    <div class="introvs"><img data-logo alt="VS Versus logo"></div>
+  </div>
+  <div class="impact"></div>
+  <div class="sparks"><span style="--r:0deg"></span><span style="--r:45deg"></span><span style="--r:90deg"></span><span style="--r:135deg"></span><span style="--r:180deg"></span><span style="--r:225deg"></span><span style="--r:270deg"></span><span style="--r:315deg"></span></div>
+  <div class="flash"></div>
+  <div class="tapgo" id="tapgo">Tap to enter</div>
+</div>
+<canvas id="fxCanvas" class="hide" style="position:fixed;inset:0;z-index:90;pointer-events:none"></canvas>
+<div id="discoLayer" class="hide"></div>
+<div id="announce" class="hide" role="alert"></div>
+<button class="btn hide" id="adminFab">🛠 Admin</button>
+<div id="prank" class="prank hide"></div>
+<div class="tools">
+  <button class="btn" id="themeBtn">Dark mode</button>
+  <button class="btn" id="fastBtn" aria-pressed="false">Fast mode: off</button>
+  <button class="btn" id="soundBtn">Sound: on</button>
+  <button class="btn" id="termsBtn">Terms</button>
+</div>
+<div class="bgfx" id="bgfx" aria-hidden="true"></div>
+<div class="wrap">
+<p class="quote" id="quote"></p>
+
+<section id="auth" class="auth hide">
+  <img class="brand" data-logo alt="VS Versus logo">
+  <div class="card welcome" style="margin-top:16px">
+    <button class="btn circle adminKey" aria-label="Admin" title="Admin">🔑</button>
+    <h2 class="hello" id="hello">Welcome back</h2>
+    <p class="sub" id="sub">Good to see you again. Log in to cast your vote.</p>
+    <div class="tabs">
+      <button class="btn on" id="tabLogin">Log in</button>
+      <button class="btn" id="tabSignup">Sign up</button>
+    </div>
+    <div id="nameBox" class="hide"><label for="uName">Username</label><input id="uName" autocomplete="username" maxlength="20" placeholder="What should we call you?"></div>
+    <label for="uEmail">Email</label><input id="uEmail" type="email" autocomplete="email" placeholder="you@example.com">
+    <label for="uPass">Password</label><input id="uPass" type="password" autocomplete="current-password" placeholder="At least 6 characters">
+    <a href="#" class="tlink2" id="forgotLink">Forgot password?</a>
+    <label class="agree hide" id="agreeBox"><input type="checkbox" id="agreeChk"><span>I agree to the <a href="#" class="tlink">Terms and Conditions</a></span></label>
+    <p class="err" id="authErr" role="alert"></p>
+    <button class="btn primary full" id="authGo">Log in</button>
+    <p class="or">or</p>
+    <button class="btn full google" id="toGoogle">
+      <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.4 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6C12.3 13.5 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.9-4.7l-7.8-6A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.7-4-13.6-9.8l-7.8 6C6.5 42.6 14.6 48 24 48z"/></svg>
+      Continue with Google
+    </button>
+  </div>
+</section>
+
+<section id="google" class="auth hide">
+  <div class="card welcome">
+    <button class="btn circle adminKey" aria-label="Admin" title="Admin">🔑</button>
+    <h2 class="hello">Welcome! Hop in with Google</h2>
+    <p class="sub">Use your Google email and you’re in. No new password needed.</p>
+    
+    <label class="agree"><input type="checkbox" id="gAgree"><span>I agree to the <a href="#" class="tlink">Terms and Conditions</a></span></label>
+    <p class="err" id="gErr" role="alert"></p>
+    <button class="btn primary full" id="gGo">Continue with Google</button>
+    <button class="btn full" id="gBack">Back</button>
+  </div>
+</section>
+
+<section id="verify" class="auth hide">
+  <div class="card welcome">
+    <h2 class="hello">Check your email</h2>
+    <p class="sub" id="vSub">We sent you a link. Open it, then come back and tap the button below.</p>
+    <p class="err" id="vErr" role="alert"></p>
+    <button class="btn primary full" id="vDone">I’ve verified my email</button>
+    <button class="btn full" id="vResend">Send the email again</button>
+    <button class="btn full" id="vOut">Log out</button>
+  </div>
+</section>
+
+<section id="banned" class="auth hide">
+  <div class="card welcome">
+    <h2 class="hello">You’ve been banned</h2>
+    <p class="sub" id="banReason"></p>
+    <label for="appealIn">Appeal</label><input id="appealIn" maxlength="500" placeholder="Tell the admin why you should come back">
+    <p class="err" id="appealMsg" role="alert"></p>
+    <button class="btn primary full" id="appealGo">Send appeal</button>
+    <button class="btn full" id="banOut">Log out</button>
+  </div>
+</section>
+
+<section id="app" class="hide">
+  <div class="top">
+    <div class="brandrow"><img class="mini" data-logo alt=""><h1 class="logo">v<i>s</i></h1></div>
+    <div class="right">
+      <span class="pill" id="who"></span>
+      <button class="btn circle" id="adminBtn" aria-label="Admin" title="Admin">🔑</button>
+      <button class="btn small" id="logout">Log out</button>
+    </div>
+  </div>
+
+  <div class="nav"><button class="btn small on" data-tab="battle">⚔️ Battle</button><button class="btn small" data-tab="prev">🏆 Previous</button><button class="btn small" data-tab="chat">💬 Chat</button></div>
+  <div id="tab-battle">
+  <div class="arena">
+    <div class="side a" id="sideA"><h2 id="nA"></h2><div class="count"><span id="cA">0</span><small>votes</small></div><button class="btn" id="vA">Vote</button></div>
+    <div class="vs">vs</div>
+    <div class="side b" id="sideB"><h2 id="nB"></h2><div class="count"><span id="cB">0</span><small>votes</small></div><button class="btn" id="vB">Vote</button></div>
+  </div>
+  <p class="timer" id="timer"></p>
+  <div class="bar" aria-hidden="true"><div id="barFill"></div></div>
+  <p class="status" id="status"></p>
+
+  <div class="card admin hide" id="adminPanel">
+    <div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">🛠 Admin menu</h3><button class="btn" id="admClose">✕ Close</button></div>
+    <h3 style="margin:16px 0 8px">Change names</h3>
+    <div class="row"><input id="eA" maxlength="30" aria-label="Name for the left side"><input id="eB" maxlength="30" aria-label="Name for the right side"></div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn primary" id="saveNames">Save names</button>
+      <button class="btn danger" id="resetVotes">Reset all votes</button>
+      <button class="btn" id="exitAdmin">Exit admin</button>
+    </div>
+    <h3 style="margin:16px 0 8px">Battle timer</h3>
+    <div class="row"><input id="tMin" type="number" min="1" max="1440" placeholder="Minutes" aria-label="Timer minutes"><button class="btn primary" id="tStart">Start timer</button><button class="btn" id="tClear">Clear timer</button><button class="btn" data-addmin="1">+1 min</button><button class="btn" data-addmin="5">+5 min</button></div>
+    <div class="row" style="margin-top:10px"><button class="btn danger" id="endBattle">End battle and save to history</button></div>
+    <h3 style="margin:16px 0 8px">Fun tools</h3>
+    <div class="row"><button class="btn" id="fxFire">🎆 Fireworks</button><button class="btn" id="fxDisco">🪩 Disco</button><button class="btn" id="fxConf">🎉 Confetti</button><button class="btn" id="fxRain">🥊 Emoji rain</button><button class="btn" id="fxQuake">🌋 Earthquake</button><button class="btn" id="fxFlip">🙃 Flip screen</button></div>
+    <div class="row" style="margin-top:10px"><input id="annText" maxlength="120" placeholder="Announcement for everyone" aria-label="Announcement"><button class="btn primary" id="fxAnn">📢 Send</button></div>
+    <div class="row" style="margin-top:10px"><input id="rainText" maxlength="30" placeholder="Custom emoji rain, e.g. 🍌" aria-label="Custom emoji rain"><button class="btn primary" id="fxRainCustom">🌧 Rain it</button></div>
+    <div class="row chips" id="rainChips" style="margin-top:6px"><button class="btn small" data-rainchip="🍌">🍌</button><button class="btn small" data-rainchip="🍕">🍕</button><button class="btn small" data-rainchip="🦆">🦆</button><button class="btn small" data-rainchip="💸">💸</button><button class="btn small" data-rainchip="💩">💩</button><button class="btn small" data-rainchip="🍌🍕🦆">Mix</button></div>
+    <h3 style="margin:16px 0 8px">Soundboard (plays for everyone)</h3>
+    <div class="row" id="board"><button class="btn" data-snd="fahhh">🔊 Fahhh</button><button class="btn" data-snd="airhorn">📯 Airhorn</button><button class="btn" data-snd="sadtrombone">😢 Sad trombone</button><button class="btn" data-snd="boom">💥 Boom</button><button class="btn" data-snd="siren">🚨 Siren</button></div>
+    <h3 style="margin:16px 0 8px">Custom emoji rain</h3>
+    <div class="row"><input id="rainText" maxlength="30" placeholder="Type emojis, like 🍌" aria-label="Emojis for the rain"><button class="btn primary" id="fxRainC">🌧 Rain</button></div>
+    <h3 style="margin:16px 0 8px">More powers</h3>
+    <div class="row"><button class="btn" id="fxBlack">🌑 Lights out</button><button class="btn" id="fxFake">🚫 Fake ban prank</button><button class="btn" id="lockVotes">🔒 Lock voting</button><button class="btn" id="lockChat">🔒 Lock chat</button></div>
+    <h3 style="margin:16px 0 8px">Clean up</h3>
+    <div class="row" style="margin-top:10px"><button class="btn danger" id="clrChat">Clear chat</button><button class="btn danger" id="clrViews">Clear views</button></div>
+    <h3 style="margin:16px 0 8px">Banned users and appeals</h3><div id="banList"></div>
+    <h3 style="margin:16px 0 8px">Mini admins (can mute for up to 10 min)</h3><div id="modList"></div>
+    <h3 style="margin:16px 0 8px">Muted users</h3><div id="muteList"></div>
+    <p class="status" style="text-align:left;margin-top:8px" id="adminMsg"></p>
+    <h3 style="margin:18px 0 4px">Votes by user</h3>
+    <div id="voterList"></div>
+  </div>
+
+  <div class="card views">
+    <h3>Views</h3>
+    <div class="row"><input id="newView" maxlength="200" placeholder="Share your view" aria-label="Your view"><button class="btn primary" id="postView">Post</button></div>
+    <label class="agree"><input type="checkbox" id="anonChk"><span>Post anonymously</span></label>
+    <div id="viewList" style="margin-top:12px"></div>
+  </div>
+  </div>
+  <div id="tab-prev" class="hide"><div class="card views"><h3>Previous battles</h3><div id="prevList" style="margin-top:12px"></div></div></div>
+  <div id="tab-chat" class="hide"><div class="card views"><h3>Global chat</h3><p class="pill" style="margin:0 0 8px">Messages vanish after 24 hours unless the admin pins them.</p><div id="pinList"></div><div id="chatList" class="chatbox"></div>
+    <div class="row" style="margin-top:10px"><input id="chatIn" maxlength="200" placeholder="Say something" aria-label="Chat message"><button class="btn" id="emojiBtn" aria-label="Emoji">😀</button><button class="btn primary" id="chatSend">Send</button></div>
+    <div id="emojiBar" class="emojibar hide"></div>
+    <label class="agree"><input type="checkbox" id="chatAnon"><span>Send anonymously</span></label></div></div>
+</section>
+</div>
+
+<div class="modal hide" id="confirm" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+  <div class="card">
+    <h3 id="cTitle"></h3>
+    <p class="pill">You can only vote once. This can’t be changed.</p>
+    <div class="row" style="margin-top:14px"><button class="btn primary" id="cYes">Yes, vote</button><button class="btn" id="cNo">Cancel</button></div>
+  </div>
+</div>
+<div class="modal hide" id="termsModal" role="dialog" aria-modal="true" aria-labelledby="tTitle">
+  <div class="card terms">
+    <div class="thead"><h3 id="tTitle"></h3><span class="pill" id="tPage"></span></div>
+    <div class="tbody" id="tBody"></div>
+    <div class="row" style="margin-top:14px"><button class="btn" id="tPrev">Back</button><button class="btn primary" id="tNext">Next</button><button class="btn" id="tClose">Close</button></div>
+  </div>
+</div>
+<div class="modal hide" id="titleModal" role="dialog" aria-modal="true" aria-labelledby="ttTitle">
+  <div class="card">
+    <h3 id="ttTitle">Give a title</h3><p class="pill" id="ttWho"></p>
+    <div class="row" id="ttPresets"></div>
+    <label for="ttText">Title</label><input id="ttText" maxlength="20" placeholder="e.g. Champion">
+    <label for="ttColor">Color</label><input id="ttColor" type="color" value="#ffd36b" style="height:42px;padding:2px">
+    <label class="agree"><input type="checkbox" id="ttGlow" checked><span>Glow</span></label>
+    <label for="ttAnim">Animation</label><select id="ttAnim"><option value="none">None</option><option value="pulse">Pulse</option><option value="rainbow">Rainbow</option><option value="shimmer">Shimmer</option></select>
+    <p class="status" style="text-align:left;margin-top:10px" id="ttPrev"></p>
+    <div class="row" style="margin-top:12px"><button class="btn primary" id="ttSave">Save title</button><button class="btn danger" id="ttRemove">Remove</button><button class="btn" id="ttClose">Cancel</button></div>
+  </div>
+</div>
+<div id="toasts"></div>
+<div class="modal hide" id="pinModal" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+  <div class="card">
+    <h3 id="pTitle">Admin PIN</h3>
+    <input id="pinIn" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="Admin PIN">
+    <p class="err" id="pinErr" role="alert"></p>
+    <div class="row" style="margin-top:6px"><button class="btn primary" id="pinGo">Enter</button><button class="btn" id="pinNo">Cancel</button></div>
+  </div>
+</div>
+
+<script>window.__vsStage="whole page loaded, starting code"</script>
+<script>
+window.__vsStage="site code started";
+function loadFb(src){
+  var v="10.14.1",names=["app","auth","firestore"];
+  return Promise.all(names.map(function(n){
+    return import(src==="g"?"https://www.gstatic.com/firebasejs/"+v+"/firebase-"+n+".js":"https://cdn.jsdelivr.net/npm/firebase@"+v+"/"+n+"/+esm");
+  }));
+}
+window.__vsStage="loading Firebase";
+loadFb("g").catch(function(e1){
+  window.__vsStage="trying backup source";
+  return loadFb("j").catch(function(e2){
+    window.__vsFailed=true;
+    if(window.__vsBox)window.__vsBox("Could not load Firebase: "+((e1&&e1.message)||e1)+" | "+((e2&&e2.message)||e2));
+    return new Promise(function(){});
+  });
+}).then(function(mods){
+window.__vsStage="Firebase loaded, starting";
+const {initializeApp}=mods[0];
+const {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signInWithPopup,GoogleAuthProvider,updateProfile,signOut,sendEmailVerification,sendPasswordResetEmail}=mods[1];
+const {getFirestore,doc,collection,setDoc,addDoc,deleteDoc,getDocs,onSnapshot,query,orderBy,limit,serverTimestamp,writeBatch}=mods[2];
+const firebaseConfig={apiKey:"AIzaSyCbMtAZDl1o30MgGVb_EfATVSIdZO4D7-A",authDomain:"versus-0000.firebaseapp.com",projectId:"versus-0000",storageBucket:"versus-0000.firebasestorage.app",messagingSenderId:"408878840441",appId:"1:408878840441:web:f62197d5be678b179fb2a8"};
+(function(){
+window.__vsLoaded=true;
+Array.prototype.forEach.call(document.querySelectorAll("div"),function(d){if(d.style.zIndex==="9999")d.remove()});
+var _b=document.getElementById("boot");if(_b)_b.remove();
+var ADMIN_PIN="2023";
+var LOGO="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48ZGVmcz48ZyBpZD0icyI+PHBvbHlnb24gcG9pbnRzPSIxMDAsMTAgMTA4LDMwIDEwOCwxMTIgOTIsMTEyIDkyLDMwIi8+PHJlY3QgeD0iNzgiIHk9IjExMiIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjkiIHJ4PSIzIi8+PHJlY3QgeD0iOTYiIHk9IjEyMSIgd2lkdGg9IjgiIGhlaWdodD0iMzAiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxNTYiIHI9IjciLz48L2c+PC9kZWZzPjxjaXJjbGUgY3g9IjEwMCIgY3k9IjEwMCIgcj0iOTYiIGZpbGw9IiMxNjEzMmIiLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjkyIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iNCIvPjxnIHN0cm9rZT0iIzE2MTMyYiIgc3Ryb2tlLXdpZHRoPSIzIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48dXNlIGhyZWY9IiNzIiBmaWxsPSIjNmY4NWZmIiB0cmFuc2Zvcm09InJvdGF0ZSg0NSAxMDAgOTApIi8+PHVzZSBocmVmPSIjcyIgZmlsbD0iI2ZmN2E5MyIgdHJhbnNmb3JtPSJyb3RhdGUoLTQ1IDEwMCA5MCkiLz48L2c+PHRleHQgeD0iMTAwIiB5PSIxMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayxBcmlhbCxIZWx2ZXRpY2Esc2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSI2NiIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjMTYxMzJiIiBzdHJva2Utd2lkdGg9IjkiIHBhaW50LW9yZGVyPSJzdHJva2UiIGxldHRlci1zcGFjaW5nPSItMyI+VlM8L3RleHQ+PC9zdmc+";
+Array.prototype.forEach.call(document.querySelectorAll("img[data-logo]"),function(i){i.src=LOGO});
+var $=function(id){return document.getElementById(id)};
+function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function show(id){["auth","google","verify","banned","app"].forEach(function(x){$(x).classList.toggle("hide",x!==id)})}
+var fapp=initializeApp(firebaseConfig),auth=getAuth(fapp),fs=getFirestore(fapp);
+var user=null,names=["Option A","Option B"],votes={},views=[],voterKeys=[],isAdmin=false,mode="login",pending=null,endsAt=null,battles=[],chat=[],wasOpen=true,lastFx=0,metas={},bansList=[],appeals={},banInfo=null,unsubBan=null,metaOn=false,titles={},pins=[],ttUid=null;
+function dname(){return user?(user.displayName||(user.email||"user").split("@")[0]):"Admin"}
+function counts(){var c=[0,0];Object.keys(votes).forEach(function(k){var v=votes[k].choice;if(v===0||v===1)c[v]++});return c}
+function adminFail(e){$("adminMsg").textContent=e&&e.code==="permission-denied"?"Only the admin account can do that. Log in with the admin Google account first.":"Something went wrong. Please try again."}
+function authMsg(e){var c=(e&&e.code)||"";
+  if(c==="auth/email-already-in-use")return "Looks like you already have an account. Try logging in instead.";
+  if(c==="auth/invalid-credential"||c==="auth/wrong-password"||c==="auth/user-not-found")return "Hmm, that email and password don’t match. Give it another try.";
+  if(c==="auth/weak-password")return "Choose a stronger password (at least 6 characters).";
+  if(c==="auth/invalid-email")return "Enter a valid email address.";
+  if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request")return "";
+  if(c==="auth/unauthorized-domain")return "This website address is not allowed yet. Add it in Firebase under Authentication, then Settings, then Authorized domains.";
+  if(c==="auth/too-many-requests")return "Too many tries. Wait a minute and try again.";
+  return "Something went wrong. Please try again."}
+
+/* live data */
+onSnapshot(doc(fs,"config","main"),function(s){if(s.exists()){var d=s.data();if(d.names)names=d.names;endsAt=d.endsAt||null;votesLocked=!!d.votesLocked;chatLocked=!!d.chatLocked}adminLabels();render();tick()},function(e){console.error(e)});
+onSnapshot(query(collection(fs,"battles"),orderBy("endedAt","desc"),limit(50)),function(s){battles=[];s.forEach(function(d){battles.push(d.data())});renderPrev()},function(e){console.error(e)});
+onSnapshot(query(collection(fs,"chat"),orderBy("ts","desc"),limit(60)),function(s){
+  chat=[];s.forEach(function(d){var x=d.data();x.id=d.id;chat.push(x)});
+  var dead=chat.filter(expired);
+  if(dead.length){var wb=writeBatch(fs);dead.slice(0,20).forEach(function(m){wb.delete(doc(fs,"chat",m.id))});wb.commit().catch(function(){})}
+  if(chatSeen&&!$("app").classList.contains("hide")&&$("tab-chat").classList.contains("hide")){
+    chat.forEach(function(m){if(!chatSeen[m.id]&&!expired(m)&&!(user&&m.uid===user.uid))toast("💬 "+(m.uid==="anon"?"Anonymous":m.by)+": "+String(m.text).slice(0,60))});
+  }
+  chatSeen={};chat.forEach(function(m){chatSeen[m.id]=1});
+  renderChat();
+},function(e){console.error(e)});
+onSnapshot(doc(fs,"fx","current"),function(s){if(!s.exists())return;var d=s.data(),t=d.ts&&d.ts.toMillis?d.ts.toMillis():0;if(t&&t!==lastFx&&Date.now()-t<12000){lastFx=t;runFx(d.type,d.text)}},function(e){console.error(e)});
+onSnapshot(collection(fs,"titles"),function(s){titles={};s.forEach(function(d){titles[d.id]=d.data()});render()},function(e){console.error(e)});
+onSnapshot(query(collection(fs,"pins"),orderBy("ts","desc"),limit(10)),function(s){pins=[];s.forEach(function(d){var x=d.data();x.id=d.id;pins.push(x)});renderPins()},function(e){console.error(e)});
+onSnapshot(collection(fs,"votes"),function(s){votes={};s.forEach(function(d){votes[d.id]=d.data()});render()},function(e){console.error(e)});
+onSnapshot(query(collection(fs,"views"),orderBy("ts","desc"),limit(100)),function(s){views=[];s.forEach(function(d){var x=d.data();x.id=d.id;views.push(x)});renderViews()},function(e){console.error(e)});
+
+/* auth */
+function setMode(m){
+  mode=m;$("tabLogin").classList.toggle("on",m==="login");$("tabSignup").classList.toggle("on",m==="signup");
+  $("nameBox").classList.toggle("hide",m!=="signup");$("agreeBox").classList.toggle("hide",m!=="signup");$("forgotLink").classList.toggle("hide",m!=="login");
+  $("authGo").textContent=m==="login"?"Log in":"Create my account";
+  $("hello").textContent=m==="login"?"Welcome back":"Join the fun";
+  $("sub").textContent=m==="login"?"Good to see you again. Log in to cast your vote.":"Make a free account, pick a side, and share your view. It takes 10 seconds.";
+  $("authErr").textContent="";
+}
+$("tabLogin").onclick=function(){setMode("login")};
+$("tabSignup").onclick=function(){setMode("signup")};
+function validEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)}
+$("authGo").onclick=async function(){
+  var email=$("uEmail").value.trim(),pass=$("uPass").value,name=$("uName").value.trim(),err=$("authErr"),btn=$("authGo");
+  if(!validEmail(email)){err.textContent="Enter a valid email address.";return}
+  if(pass.length<6){err.textContent="Password must be at least 6 characters.";return}
+  if(mode==="signup"){
+    if(!name){err.textContent="Choose a username.";return}
+    if(!$("agreeChk").checked){err.textContent="Please agree to the Terms and Conditions to create an account.";return}
+  }
+  err.textContent="";btn.disabled=true;
+  try{
+    if(mode==="signup"){var cr=await createUserWithEmailAndPassword(auth,email,pass);await updateProfile(cr.user,{displayName:name});try{await sendEmailVerification(cr.user)}catch(x){}render()}
+    else{await signInWithEmailAndPassword(auth,email,pass)}
+    $("uPass").value="";sfx("success");
+  }catch(e){err.textContent=authMsg(e)}
+  btn.disabled=false;
+};
+$("toGoogle").onclick=function(){show("google")};
+$("gBack").onclick=function(){show("auth")};
+$("gGo").onclick=async function(){
+  if(!$("gAgree").checked){$("gErr").textContent="Please agree to the Terms and Conditions to continue.";return}
+  $("gErr").textContent="";
+  try{await signInWithPopup(auth,new GoogleAuthProvider());sfx("success")}catch(e){$("gErr").textContent=authMsg(e)}
+};
+$("logout").onclick=function(){isAdmin=false;signOut(auth)};
+function route(){
+  if(!user){show(isAdmin?"app":"auth")}
+  else if(!user.emailVerified){$("vSub").textContent="We sent a link to "+user.email+". Open it, then come back and tap the button below.";show("verify")}
+  else if(banInfo){$("banReason").textContent=banInfo.reason?"Reason: "+banInfo.reason:"You can send an appeal below.";show("banned")}
+  else{show("app")}
+  render();
+}
+onAuthStateChanged(auth,function(u){
+  user=u;banInfo=null;metaOn=false;attachMe();
+  if(unsubBan){unsubBan();unsubBan=null}
+  if(u){unsubBan=onSnapshot(doc(fs,"bans",u.uid),function(s){banInfo=s.exists()?s.data():null;route()},function(){})}
+  route();
+});
+$("banOut").onclick=function(){signOut(auth)};
+$("appealGo").onclick=async function(){
+  var t=$("appealIn").value.trim();if(!t||!user)return;
+  try{await setDoc(doc(fs,"appeals",user.uid),{text:t.slice(0,500),name:dname(),ts:serverTimestamp()});$("appealMsg").textContent="Appeal sent. The admin will review it.";$("appealIn").value=""}
+  catch(e){$("appealMsg").textContent="Could not send. You may have already sent an appeal."}
+};
+$("vDone").onclick=async function(){
+  try{await user.reload();await user.getIdToken(true);user=auth.currentUser;
+    if(user.emailVerified){$("vErr").textContent="";route();sfx("success")}
+    else{$("vErr").textContent="Not verified yet. Open the link in your email first (check spam)."}
+  }catch(e){$("vErr").textContent=authMsg(e)}
+};
+$("vResend").onclick=async function(){try{await sendEmailVerification(user);$("vErr").textContent="Sent again. Check your inbox and spam folder."}catch(e){$("vErr").textContent=authMsg(e)}};
+$("vOut").onclick=function(){signOut(auth)};
+
+/* render */
+function render(){
+  if(isAdmin&&user&&!metaOn)attachAdmin();
+  var c=counts(),mine=user&&votes[user.uid]?votes[user.uid].choice:null,t=c[0]+c[1];
+  $("who").textContent=dname();
+  $("nA").textContent=names[0];$("nB").textContent=names[1];$("cA").textContent=c[0];$("cB").textContent=c[1];
+  $("barFill").style.width=(t?c[0]/t*100:50)+"%";
+  $("vA").disabled=$("vB").disabled=(mine!==null||!user||!isOpen());
+  $("vA").textContent=mine===0?"Your vote":"Vote";$("vB").textContent=mine===1?"Your vote":"Vote";
+  $("sideA").classList.toggle("mine",mine===0);$("sideB").classList.toggle("mine",mine===1);
+  $("status").textContent=!user?"Admin view. Log in with an account to vote.":(mine===null?"Pick a side. You get one vote.":"You voted for "+names[mine]+". Thanks!");
+  $("adminPanel").classList.toggle("hide",!(isAdmin&&adminOpen));$("adminFab").classList.toggle("hide",!(isAdmin&&!adminOpen));$("adminBtn").classList.toggle("hide",isAdmin);
+  if(isAdmin){
+    if(document.activeElement!==$("eA")&&document.activeElement!==$("eB")){$("eA").value=names[0];$("eB").value=names[1]}
+    renderVoters();
+  }
+  renderViews();renderChat();renderPrev();renderBans();renderPins();
+}
+function renderVoters(){
+  var box=$("voterList");
+  voterKeys=Object.keys(votes).filter(function(k){var v=votes[k].choice;return v===0||v===1});
+  if(!voterKeys.length){box.innerHTML='<p class="empty">No votes yet.</p>';return}
+  box.innerHTML=voterKeys.map(function(k,i){var v=votes[k];
+    return '<div class="view"><div><p>'+esc(v.name||"User")+badge(k)+' voted for '+esc(names[v.choice])+'</p></div><button class="btn danger small" data-i="'+i+'">Remove vote</button><button class="btn small" data-tban="'+i+'">Ban</button><button class="btn small" data-ttt="'+i+'">🏷</button></div>';
+  }).join("");
+}
+function renderViews(){
+  var box=$("viewList");
+  if(!views.length){box.innerHTML='<p class="empty">No views yet. Be the first to post.</p>';return}
+  box.innerHTML=views.map(function(v,i){
+    return '<div class="view"><div><p>'+esc(v.text)+'</p><span>'+esc(v.by||"")+(v.uid==="anon"?(isAdmin&&metas[v.id]?" (really "+esc(metas[v.id].name)+")":""):badge(v.uid))+'</span></div>'+
+      (isAdmin?'<button class="btn danger small" data-del="'+i+'">Remove</button><button class="btn small" data-vban="'+i+'">Ban</button><button class="btn small" data-vtt="'+i+'">🏷</button>':'')+'</div>';
+  }).join("");
+}
+$("viewList").onclick=async function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-del");
+  if(i===null||i===undefined||!isAdmin||!views[+i])return;
+  try{var wb=writeBatch(fs);wb.delete(doc(fs,"views",views[+i].id));wb.delete(doc(fs,"viewMeta",views[+i].id));await wb.commit()}catch(x){adminFail(x)}
+};
+$("postView").onclick=async function(){
+  var t=$("newView").value.trim();if(!t||!user)return;if(muteUntil>Date.now()&&!isAdmin){toast("🔇 You are muted for "+Math.ceil((muteUntil-Date.now())/60000)+" more min");return}$("newView").value="";
+  try{await postViewDoc(t)}catch(e){alert("Could not post your view. Please try again.")}
+};
+
+/* voting */
+function ask(i){pending=i;$("cTitle").textContent="Are you sure you want to vote for “"+names[i]+"”?";$("confirm").classList.remove("hide");$("cYes").focus()}
+$("vA").onclick=function(){ask(0)};
+$("vB").onclick=function(){ask(1)};
+$("cNo").onclick=function(){$("confirm").classList.add("hide");pending=null};
+$("cYes").onclick=async function(){
+  $("confirm").classList.add("hide");
+  if(!user||pending===null||votes[user.uid]||!isOpen())return;
+  var ch=pending;pending=null;
+  try{await setDoc(doc(fs,"votes",user.uid),{choice:ch,name:dname(),ts:serverTimestamp()});sfx("vote")}
+  catch(e){alert("Could not save your vote. You may have already voted.")}
+};
+
+/* admin */
+$("adminBtn").onclick=function(){$("pinIn").value="";$("pinErr").textContent="";$("pinModal").classList.remove("hide");$("pinIn").focus()};
+$("pinNo").onclick=function(){$("pinModal").classList.add("hide")};
+Array.prototype.forEach.call(document.querySelectorAll(".adminKey"),function(b){b.onclick=$("adminBtn").onclick});
+function tryPin(){
+  if($("pinIn").value===ADMIN_PIN){isAdmin=true;adminOpen=true;sfx("success");$("pinModal").classList.add("hide");if(!user)show("app");render()}
+  else{$("pinErr").textContent="Wrong PIN. Try again."}
+}
+$("pinGo").onclick=tryPin;
+$("pinIn").onkeydown=function(e){if(e.key==="Enter")tryPin()};
+$("exitAdmin").onclick=function(){isAdmin=false;adminOpen=false;if(user)render();else show("auth")};
+$("voterList").onclick=async function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-i");
+  if(i===null||i===undefined||!isAdmin)return;
+  var k=voterKeys[+i],v=votes[k];if(!v)return;
+  if(!confirm("Remove "+(v.name||"this user")+"’s vote for "+names[v.choice]+"? They will be able to vote again."))return;
+  try{await deleteDoc(doc(fs,"votes",k));$("adminMsg").textContent="Removed the vote from "+(v.name||"the user")+"."}catch(x){adminFail(x)}
+};
+$("saveNames").onclick=async function(){
+  var a=$("eA").value.trim(),b=$("eB").value.trim();
+  if(!a||!b){$("adminMsg").textContent="Both names are required.";return}
+  try{await setDoc(doc(fs,"config","main"),{names:[a,b]},{merge:true});$("adminMsg").textContent="Names saved."}catch(x){adminFail(x)}
+};
+$("resetVotes").onclick=async function(){
+  if(!confirm("Reset all votes? Everyone will be able to vote again."))return;
+  try{var s=await getDocs(collection(fs,"votes")),wb=writeBatch(fs);s.forEach(function(d){wb.delete(d.ref)});await wb.commit();$("adminMsg").textContent="Votes reset."}catch(x){adminFail(x)}
+};
+
+var prefs={theme:null,fast:false,sound:true};
+try{prefs=Object.assign(prefs,JSON.parse(localStorage.getItem("vs-prefs")||"{}"))}catch(e){}
+function effTheme(){return prefs.theme||(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")}
+function applyPrefs(){
+  var r=document.documentElement;
+  if(prefs.theme)r.setAttribute("data-theme",prefs.theme);else r.removeAttribute("data-theme");
+  r.classList.toggle("fast",!!prefs.fast);
+  $("themeBtn").textContent=effTheme()==="dark"?"Light mode":"Dark mode";
+  $("fastBtn").textContent="Fast mode: "+(prefs.fast?"on":"off");
+  $("fastBtn").setAttribute("aria-pressed",prefs.fast?"true":"false");
+  $("soundBtn").textContent="Sound: "+(prefs.sound?"on":"off");
+  try{localStorage.setItem("vs-prefs",JSON.stringify(prefs))}catch(e){}
+}
+$("themeBtn").onclick=function(){prefs.theme=effTheme()==="dark"?"light":"dark";applyPrefs()};
+$("fastBtn").onclick=function(){prefs.fast=!prefs.fast;applyPrefs()};
+$("soundBtn").onclick=function(){prefs.sound=!prefs.sound;applyPrefs()};
+applyPrefs();
+var intro=$("intro");
+function endIntro(){if(intro&&intro.parentNode){intro.parentNode.removeChild(intro)}}
+var actx=null;
+function initAudio(){try{var C=window.AudioContext||window.webkitAudioContext;if(C&&!actx)actx=new C();if(actx&&actx.state==="suspended")actx.resume()}catch(e){}}
+function noise(t,dur,type,f0,f1,vol){var n=Math.floor(actx.sampleRate*dur),b=actx.createBuffer(1,n,actx.sampleRate),d=b.getChannelData(0);for(var i=0;i<n;i++)d[i]=Math.random()*2-1;var s=actx.createBufferSource();s.buffer=b;var fl=actx.createBiquadFilter();fl.type=type;fl.frequency.setValueAtTime(f0,t);fl.frequency.exponentialRampToValueAtTime(f1,t+dur);var g=actx.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.001,t+dur);s.connect(fl);fl.connect(g);g.connect(actx.destination);s.start(t)}
+function playSound(){
+  if(!actx)return;var t=actx.currentTime,c=t+.6;
+  noise(t,.55,"bandpass",300,2800,.35);
+  noise(c,.14,"highpass",3000,7000,.8);
+  [1180,1760,2490,3320,4410].forEach(function(f,i){var o=actx.createOscillator(),g=actx.createGain();o.type=i%2?"triangle":"sine";o.frequency.value=f;g.gain.setValueAtTime(0.0001,c);g.gain.exponentialRampToValueAtTime(.5/(i+1),c+.005);g.gain.exponentialRampToValueAtTime(.001,c+1.3);o.connect(g);g.connect(actx.destination);o.start(c);o.stop(c+1.4)});
+}
+function closeAudio(){try{if(actx){actx.close();actx=null}}catch(e){}}
+function tone(f,t,dur,type,vol,f2){var o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+dur+.05)}
+function sfx(k){
+  if(!actx||!prefs.sound||actx.state!=="running")return;var t=actx.currentTime;
+  if(k==="click")tone(720,t,.07,"triangle",.12,520);
+  else if(k==="success"){tone(523,t,.18,"sine",.2);tone(784,t+.11,.3,"sine",.2);tone(1047,t+.22,.4,"sine",.15)}
+  else if(k==="vote"){noise(t,.1,"highpass",3000,7000,.5);[1180,1760,2490].forEach(function(f,i){tone(f,t,.9,i%2?"triangle":"sine",.3/(i+1))});tone(100,t,.35,"sine",.5,40);tone(784,t+.2,.4,"sine",.18);tone(1175,t+.32,.5,"sine",.16)}
+  else if(k==="error"){tone(220,t,.18,"square",.1,150);tone(150,t+.16,.22,"square",.1,110)}
+}
+function playIntro(){
+  var t=actx.currentTime,c=t+.6;
+  noise(t,.55,"bandpass",300,3000,.3);noise(t+.05,.5,"bandpass",400,3400,.2);
+  noise(c,.16,"highpass",2500,8000,.9);
+  tone(110,c,.45,"sine",.8,35);
+  [1180,1760,2490,3320,4410,5600].forEach(function(f,i){tone(f,c,1.4,i%2?"triangle":"sine",.45/(i+1))});
+  noise(c+.1,.5,"bandpass",2500,9000,.25);
+  tone(660,c+.18,.5,"sine",.15,990);
+}
+var started=false;
+function begin(){
+  if(started)return;started=true;
+  try{if(actx&&prefs.sound)playIntro()}catch(e){}
+  intro.classList.remove("wait");$("tapgo").style.display="none";
+  intro.onclick=endIntro;setTimeout(endIntro,2500);
+}
+document.addEventListener("pointerdown",initAudio);
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("button");if(b)sfx("click")});
+["authErr","gErr","pinErr"].forEach(function(id){try{new MutationObserver(function(){if($(id).textContent)sfx("error")}).observe($(id),{childList:true})}catch(e){}});
+if(prefs.fast){endIntro()}else{
+  initAudio();
+  if(actx&&actx.state==="running"){begin()}
+  else{$("tapgo").style.display="block";intro.onclick=function(){initAudio();var go=function(){begin()};if(actx&&actx.resume){actx.resume().then(go,go)}else{go()}}}
+}
+
+var QUOTES=["Every great rivalry starts with a single dare.","A fair fight makes both sides stronger.","Champions are made in the rounds nobody watches.","The bell rings for everyone eventually.","Fear is just an opponent you haven’t faced yet.","Swing first, apologize to nobody, shake hands after.","Real winners help the loser up.","Two blades, one spark, no regrets.","Underdogs have the loudest comebacks.","You don’t pick the fight; you pick how you stand.","Bruises fade, but the story stays.","A sharp mind beats a sharp sword.","Every knockdown is an invitation to rise.","The best rivals make you better.","Pick a side and own it.","Courage is stepping in when your knees shake.","Rematches are where legends are written.","Respect the opponent, then outplay them.","Fight smart, rest hard, come back stronger.","Not every battle needs a sword.","The crowd cheers, but you do the work.","Steel sharpens steel, and rivals sharpen rivals.","Fall seven times, rise with a plan.","Heat in the moment, cool in the head.","The ring remembers who showed up.","No one wins by standing still.","A clash of ideas lights the brightest sparks.","Win with grace, lose with lessons.","Every champion was once a nervous beginner.","Sweat now, celebrate later.","The toughest opponent is yesterday’s you.","Raise your guard and your standards.","Good fights end with good handshakes.","Sparks fly where two wills collide.","Patience wins rounds; nerve wins nights.","The comeback is always stronger than the setback.","Don’t fear the clash; fear never trying.","A true warrior fights for something bigger.","One bold move can change the whole match.","Rivals are just respect wearing armor.","Dust yourself off and square up.","Loud wins fade; quiet discipline lasts.","The final bell proves who trained.","Fight like the crowd is watching, train like nobody is.","Strategy is the sword nobody sees.","Great debates sharpen great minds.","Don’t chase the knockout; chase the lesson.","Even giants started in the first round.","Take the hit, keep the heart.","Bravery isn’t loud; it just keeps going.","Every showdown has a story worth telling.","Two sides, one arena, endless fire.","The strongest guard is a calm mind.","Defeat is just victory warming up.","Step into the ring with your head high.","Honor the fight, honor the fighter.","Real power knows when to hold back.","A good rival never lets you get lazy.","Fast hands, faster thinking.","Today’s underdog is tomorrow’s champion.","Clash today, cheer together tomorrow.","Lace up, show up, never back up.","The best defense is a prepared mind.","Hit the mat, then hit back harder.","Winners study their losses.","A little rivalry keeps the fire lit.","There is no victory without a struggle.","Sharpen your focus before your blade.","Every spar is a chance to grow.","Battles are won before they begin.","Footwork wins the fights nobody notices.","Keep your chin up and your eyes open.","Legends rematch. Quitters don’t.","Stand tall, even when the odds don’t.","Make your opponent earn every inch.","The arena rewards the ones who stay.","Calm hands make the cleanest strikes.","A challenge accepted is half won.","Pressure turns coal into diamonds.","Fire in the heart, ice in the mind.","Your corner believes in you; so should you.","Draw your line, then hold it.","The sweetest wins come from the hardest rounds.","Throw kindness as hard as you throw punches.","Trash talk fades; skill stays.","When in doubt, keep your guard up.","Great fighters listen more than they shout.","Every duel begins with a bow.","Hold your ground and your humor.","One more round is all it takes.","Light the torch, enter the arena.","Make every round count.","Beaten once, beaten twice, never beaten down.","A steady heart beats a swinging fist.","Train the habit, trust the instinct.","Not all heroes carry swords; some carry patience.","Face it head on, then laugh about it later.","Each clash carves out a stronger you.","Victory is built in the quiet hours.","Leave it all in the ring.","The underdog bites back.","Time your strike like a heartbeat.","Cheer for the fight, not just the winner.","Every scar has a good comeback story.","Aim high, but never lower your guard.","Tough rounds build tougher people.","The spark comes first, then the blaze.","A worthy rival is a rare gift.","Never underestimate a patient opponent.","Rise early, train hard, fight fair.","Champions flinch, then charge anyway.","You were built for the big moment.","Be the storm, not the crowd.","Your next round starts right now.","Wits first, muscles second.","Land the point, not the insult.","Strong hearts win quiet wars.","A fierce rival makes a fierce friend.","Roll with it, then roll over them.","Greatness shows up when the bell does.","Hard work swings harder than luck.","Don’t duck the challenge; own it.","Even slow rounds can end in glory.","One brave step beats a hundred plans.","Respect the rules, then break the record.","The arena lights up for the bold.","Keep fighting; the best part is near.","Cuts heal, regrets don’t.","Wear your wins lightly and your losses wisely.","Strength is staying kind under pressure.","The crowd forgets; the effort doesn’t.","Face your opponent like a mirror.","Steady breath, steady blade.","Big comebacks start with small rallies.","Sometimes the bravest move is a retreat.","Make the first move count.","Show them what a rematch looks like.","Fight with your head, finish with your heart.","A good fight is a conversation in motion.","No shortcuts in the ring.","Today’s battle is tomorrow’s bragging rights.","Both fighters leave a little wiser.","Take your shot, then take your bow.","The loudest roar often hides a nervous heart.","You’ve survived every round so far.","Two corners, one respect.","Courage costs nothing and wins everything.","Swords clash, but spirits ride higher.","Pick your side, and give it everything."];
+var deck=[],lastQ="";
+function nextQuote(){
+  if(!deck.length){deck=QUOTES.slice();for(var i=deck.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=deck[i];deck[i]=deck[j];deck[j]=t}if(deck[deck.length-1]===lastQ)deck.reverse()}
+  lastQ=deck.pop();return lastQ;
+}
+var qEl=$("quote");
+function showQuote(first){
+  var txt="“"+nextQuote()+"”";
+  if(first){qEl.textContent=txt;return}
+  qEl.classList.add("out");
+  setTimeout(function(){qEl.textContent=txt;qEl.classList.remove("out")},prefs.fast?0:500);
+}
+showQuote(true);setInterval(showQuote,6500);
+(function(){
+  var L=$("bgfx"),E=["⚔️","🥊","🛡️","🔥","💥","⚡","🏆","🥋","🗡️","👊","💪","🎯","🏹","👑"];
+  for(var i=0;i<22;i++){
+    var s=document.createElement("span");
+    s.textContent=E[Math.floor(Math.random()*E.length)];
+    s.style.left=(Math.random()*95)+"%";
+    s.style.fontSize=(18+Math.random()*30)+"px";
+    s.style.animationDuration=(14+Math.random()*16)+"s";
+    s.style.animationDelay=(-Math.random()*30)+"s";
+    L.appendChild(s);
+  }
+})();
+
+var TERMS=[
+{t:"1. Accepting these terms",p:"By creating an account or using vs, you agree to these rules. If you disagree, do not use the site.",i:["You cannot use vs unless you are at least 13 years old.","You cannot use vs if you were previously removed from it.","You cannot use vs for anything illegal.","You cannot claim you did not read these terms after you agree to them.","You cannot keep using vs after the rules change unless you accept the updated terms."]},
+{t:"2. Accounts and sign-in",p:"Your account is your responsibility.",i:["You cannot create an account with a fake or stolen identity.","You cannot create more than one account per person.","You cannot share your password or let someone else use your account.","You cannot log in to an account that is not yours.","You cannot use a Google account or email address that you do not own.","You cannot try to bypass, skip or break the login screen."]},
+{t:"3. Voting",p:"Every person gets one vote. Fair votes keep vs fun.",i:["You cannot vote more than once.","You cannot make extra accounts to vote again.","You cannot use bots, scripts or automation to vote.","You cannot buy, sell or trade votes.","You cannot pressure, trick or threaten anyone into voting a certain way.","You cannot edit your browser storage or the page code to change vote counts.","You cannot undo or hide your vote by tampering with the site."]},
+{t:"4. The admin area",p:"Admin tools are only for the person the owner trusts with them.",i:["You cannot open the admin area unless the owner gave you the PIN.","You cannot guess, brute-force or try random PINs.","You cannot share the admin PIN with anyone.","You cannot change names, remove views or remove votes without permission.","You cannot use admin powers to punish people unfairly or favor one side.","You cannot reset the votes just to change a result you dislike."]},
+{t:"5. Posting your views",p:"Views are for sharing opinions on the matchup.",i:["You cannot post spam or the same message again and again.","You cannot post ads, promo codes or referral links.","You cannot post links to scams, malware or fake giveaways.","You cannot pretend to be another user, the admin or the owner.","You cannot post gibberish just to fill the page.","You cannot post anything you do not have the right to share."]},
+{t:"6. Harassment and bullying",p:"Rivalry is fine. Targeting people is not.",i:["You cannot insult, bully or target another user.","You cannot threaten anyone, even as a joke.","You cannot follow a person around the site to bother them.","You cannot gang up on someone or encourage others to.","You cannot post messages meant to scare or shame someone.","You cannot encourage anyone to hurt themselves."]},
+{t:"7. Hate and discrimination",p:"Everyone should feel welcome on vs.",i:["You cannot attack people for their race, ethnicity, nationality, religion, gender, sexuality, disability or age.","You cannot use slurs or hateful symbols.","You cannot post or praise extremist groups or ideas.","You cannot make fun of a group of people for who they are.","You cannot spread false claims meant to stir up hate."]},
+{t:"8. Violence and dangerous content",p:"The fight theme is for fun. It is about friendly rivalry, not real harm.",i:["You cannot threaten real violence against anyone.","You cannot praise or celebrate real attacks or attackers.","You cannot share instructions for making weapons or hurting people.","You cannot encourage anyone to commit crimes.","You cannot post graphic injury or gore.","You cannot use vs to organize real fights or dangerous stunts."]},
+{t:"9. Adult and exploitative content",p:"Keep vs safe for everyone.",i:["You cannot post sexual or explicit content.","You cannot post anything that sexualizes minors. This content may be reported to the authorities.","You cannot share private or intimate images of anyone without consent.","You cannot ask for or offer sexual services.","You cannot post content that exploits or endangers children or other vulnerable people."]},
+{t:"10. Privacy and personal information",p:"Respect other people’s privacy and protect your own.",i:["You cannot share another person’s phone number, address, email or ID.","You cannot post private messages or photos without permission.","You cannot collect, scrape or copy other users’ details.","You cannot try to find out who is behind another account.","You cannot post personal details about yourself that could put you at risk.","You cannot use vs to track or stalk anyone."]},
+{t:"11. Security and technical misuse",p:"Do not break the site that everyone shares.",i:["You cannot hack, probe or try to break into vs.","You cannot inject scripts, code or harmful files.","You cannot overload the site with automated requests.","You cannot scrape, copy or mirror the site with bots.","You cannot reverse-engineer vs to cheat or find weak spots.","You cannot spread viruses or malware.","You cannot hide a security problem you found. Report it to the owner instead."]},
+{t:"12. Ownership, enforcement and changes",p:"Content on vs belongs to its owners, and breaking these rules has consequences.",i:["You cannot copy the VS logo, name or design and pass it off as your own.","You cannot post content that infringes someone else’s copyright or trademark.","You cannot claim that vs endorses you, your product or your opinions.","If you break a rule, your posts, votes or account may be removed without warning.","The owner may change or end vs at any time. The site is provided as is, with no promise it will always work.","The owner can update these terms. Using vs after an update means you accept it."]}
+];
+var tPage=0;
+function showTerms(){
+  var p=TERMS[tPage];
+  $("tTitle").textContent=p.t;$("tPage").textContent="Page "+(tPage+1)+" of "+TERMS.length;
+  $("tBody").innerHTML="<p>"+esc(p.p)+"</p><ol>"+p.i.map(function(x){return "<li>"+esc(x)+"</li>"}).join("")+"</ol>"+(tPage===0?"<p>Last updated November 16, 2026.</p>":"");
+  $("tBody").scrollTop=0;$("tPrev").disabled=tPage===0;$("tNext").textContent=tPage===TERMS.length-1?"Done":"Next";
+}
+function openTerms(e){if(e&&e.preventDefault)e.preventDefault();tPage=0;showTerms();$("termsModal").classList.remove("hide");$("tNext").focus()}
+$("tPrev").onclick=function(){if(tPage>0){tPage--;showTerms()}};
+$("tNext").onclick=function(){if(tPage<TERMS.length-1){tPage++;showTerms()}else{$("termsModal").classList.add("hide")}};
+$("tClose").onclick=function(){$("termsModal").classList.add("hide")};
+$("termsBtn").onclick=openTerms;
+Array.prototype.forEach.call(document.querySelectorAll(".tlink"),function(a){a.onclick=openTerms});
+
+/* tabs, timer, history, chat, effects */
+function showTab(t){
+  ["battle","prev","chat"].forEach(function(x){$("tab-"+x).classList.toggle("hide",x!==t)});
+  Array.prototype.forEach.call(document.querySelectorAll(".nav [data-tab]"),function(b){b.classList.toggle("on",b.getAttribute("data-tab")===t)});
+}
+Array.prototype.forEach.call(document.querySelectorAll(".nav [data-tab]"),function(b){b.onclick=function(){showTab(b.getAttribute("data-tab"))}});
+function isOpen(){return !votesLocked&&(!endsAt||Date.now()<endsAt)}
+function fmt(ms){var s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;return (h?h+":"+(m<10?"0":""):"")+m+":"+(r<10?"0":"")+r}
+function tick(){
+  var o=isOpen();
+  $("timer").textContent=votesLocked?"🔒 Voting is locked by the admin":!endsAt?"":(o?"⏱ Ends in "+fmt(endsAt-Date.now()):"🏁 Battle ended. Voting is closed.");
+  if(o!==wasOpen){wasOpen=o;render()}
+}
+setInterval(tick,1000);
+function renderPrev(){
+  var b=$("prevList");
+  if(!battles.length){b.innerHTML='<p class="empty">No past battles yet.</p>';return}
+  b.innerHTML=battles.map(function(x){
+    var w=x.a>x.b?x.names[0]:(x.b>x.a?x.names[1]:null),d=x.endedAt&&x.endedAt.toDate?x.endedAt.toDate().toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"}):"";
+    return '<div class="view"><div><p><b>'+esc(x.names[0])+'</b> '+x.a+' vs '+x.b+' <b>'+esc(x.names[1])+'</b></p><span>'+(w?"Winner: "+esc(w):"Tie")+(d?" · "+d:"")+'</span></div></div>';
+  }).join("");
+}
+function renderChat(){
+  var b=$("chatList"),list=chat.filter(function(m){return !expired(m)});
+  if(!list.length){b.innerHTML='<p class="empty">No messages yet. Say hi 👋</p>';return}
+  b.innerHTML=list.slice().reverse().map(function(m){
+    var i=chat.indexOf(m),anon=m.uid==="anon",mine=user&&m.uid===user.uid;
+    var tools=((isAdmin||(isMod&&!anon&&!mine))?'<button class="btn small" data-cmute="'+i+'">🔇 Mute</button>':"")+
+      (isAdmin?'<button class="btn small" data-cpin="'+i+'">📌 Pin</button><button class="btn small" data-ctt="'+i+'">🏅 Title</button><button class="btn small" data-cmod="'+i+'">🛡 Mini admin</button><button class="btn small" data-cban="'+i+'">Ban</button><button class="btn danger small" data-cdel="'+i+'">Remove</button>':"");
+    return '<div class="msg'+(mine?" mine":"")+'"><div class="mh"><b>'+esc(anon?"Anonymous":(m.by||""))+'</b>'+(anon?(isAdmin&&metas[m.id]?'<span class="mreal">(really '+esc(metas[m.id].name)+')</span>':""):badge(m.uid))+'</div><div class="mt">'+esc(m.text)+'</div>'+(tools?'<div class="row" style="margin-top:6px">'+tools+'</div>':"")+'</div>';
+  }).join("");
+  b.scrollTop=b.scrollHeight;
+}
+$("chatSend").onclick=async function(){
+  var t=$("chatIn").value.trim();
+  if(!t)return;
+  if(!user||!user.emailVerified){alert("Log in with a verified account to chat.");return}
+  if(chatLocked&&!isAdmin){alert("The admin locked the chat for now.");return}
+  if(muteUntil>Date.now()&&!isAdmin){toast("🔇 You are muted for "+Math.ceil((muteUntil-Date.now())/60000)+" more min");return}
+  $("chatIn").value="";
+  try{await postChatDoc(t)}catch(e){alert("Could not send your message. Please try again.")}
+};
+$("chatIn").onkeydown=function(e){if(e.key==="Enter")$("chatSend").onclick()};
+$("chatList").onclick=async function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-cdel");
+  if(i===null||i===undefined||!isAdmin||!chat[+i])return;
+  try{var wb=writeBatch(fs),cid=chat[+i].id;wb.delete(doc(fs,"chat",cid));wb.delete(doc(fs,"viewMeta",cid));wb.delete(doc(fs,"pins",cid));await wb.commit()}catch(x){adminFail(x)}
+};
+
+/* admin: timer, archive, effects */
+$("tStart").onclick=async function(){
+  var m=parseInt($("tMin").value,10);
+  if(!m||m<1){$("adminMsg").textContent="Enter the number of minutes.";return}
+  try{await setDoc(doc(fs,"config","main"),{endsAt:Date.now()+m*60000},{merge:true});$("adminMsg").textContent="Timer started for "+m+" minutes."}catch(x){adminFail(x)}
+};
+$("tClear").onclick=async function(){
+  try{await setDoc(doc(fs,"config","main"),{endsAt:null},{merge:true});$("adminMsg").textContent="Timer cleared."}catch(x){adminFail(x)}
+};
+$("endBattle").onclick=async function(){
+  if(!confirm("End this battle, save it to Previous battles, and reset all votes?"))return;
+  try{
+    var c=counts(),wb=writeBatch(fs),s=await getDocs(collection(fs,"votes"));
+    wb.set(doc(collection(fs,"battles")),{names:names.slice(),a:c[0],b:c[1],endedAt:serverTimestamp()});
+    s.forEach(function(d){wb.delete(d.ref)});
+    wb.set(doc(fs,"config","main"),{endsAt:null},{merge:true});
+    await wb.commit();$("adminMsg").textContent="Battle saved to Previous battles."
+  }catch(x){adminFail(x)}
+};
+async function fireFx(type,text){try{await setDoc(doc(fs,"fx","current"),{type:type,text:text||"",ts:serverTimestamp()})}catch(x){adminFail(x)}}
+$("fxFire").onclick=function(){fireFx("fireworks")};
+$("fxDisco").onclick=function(){fireFx("disco")};
+function runFx(type,text){
+  if(type==="announce"){announce(text||"");return}
+  if(String(type).indexOf("snd:")===0){playBoard(String(type).slice(4));return}
+  if(prefs.fast)return;
+  if(type==="disco")disco();
+  else if(type==="confetti")rainFx(null);
+  else if(type==="rain")rainFx(rainSet(text));
+  else if(type==="quake")quake();
+  else if(type==="rainc")rainFx(parseEmojis(text));else if(type==="flip")flip();else if(type==="blackout")blackout();else if(type==="fakeban")fakeBan();
+  else fireworks();
+}
+function disco(){var l=$("discoLayer");l.classList.remove("hide");sfx("vote");setTimeout(function(){l.classList.add("hide")},15000)}
+function fireworks(){
+  var c=$("fxCanvas"),x=c.getContext("2d"),ps=[],end=Date.now()+6000;
+  c.width=innerWidth;c.height=innerHeight;c.classList.remove("hide");sfx("vote");
+  function burst(){var cx=Math.random()*c.width,cy=Math.random()*c.height*.5+40,hu=Math.random()*360;
+    for(var i=0;i<70;i++){var a=Math.random()*6.283,s=1+Math.random()*4.5;ps.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:70+Math.random()*30,h:hu})}}
+  var iv=setInterval(burst,300);
+  (function loop(){
+    x.clearRect(0,0,c.width,c.height);
+    ps=ps.filter(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.vx*=.99;p.l--;if(p.l<=0)return false;
+      x.fillStyle="hsla("+p.h+",100%,60%,"+Math.min(1,p.l/40)+")";x.beginPath();x.arc(p.x,p.y,2.4,0,6.283);x.fill();return true});
+    if(Date.now()>=end)clearInterval(iv);
+    if(Date.now()<end||ps.length){requestAnimationFrame(loop)}else{c.classList.add("hide")}
+  })();
+}
+
+/* anonymous posts, bans, more admin tools */
+async function postViewDoc(t){
+  if(!$("anonChk").checked){return addDoc(collection(fs,"views"),{text:t,by:dname(),uid:user.uid,ts:serverTimestamp()})}
+  var r=doc(collection(fs,"views")),wb=writeBatch(fs);
+  wb.set(r,{text:t,by:"Anonymous",uid:"anon",ts:serverTimestamp()});
+  wb.set(doc(fs,"viewMeta",r.id),{uid:user.uid,name:dname(),ts:serverTimestamp()});
+  return wb.commit();
+}
+function attachAdmin(){
+  metaOn=true;attachAdmin2();
+  onSnapshot(collection(fs,"viewMeta"),function(s){metas={};s.forEach(function(d){metas[d.id]=d.data()});renderViews()},function(){});
+  onSnapshot(collection(fs,"bans"),function(s){bansList=[];s.forEach(function(d){var x=d.data();x.uid=d.id;bansList.push(x)});renderBans()},function(){});
+  onSnapshot(collection(fs,"appeals"),function(s){appeals={};s.forEach(function(d){appeals[d.id]=d.data()});renderBans()},function(){});
+}
+async function banUser(uid,name){
+  if(!uid||uid==="anon"){$("adminMsg").textContent="Could not find that user.";return}
+  var r=prompt("Ban "+(name||"this user")+"? Type a reason (optional):");
+  if(r===null)return;
+  try{await setDoc(doc(fs,"bans",uid),{name:name||"User",reason:r.slice(0,200),ts:serverTimestamp()});$("adminMsg").textContent="Banned "+(name||"the user")+"."}catch(x){adminFail(x)}
+}
+async function unban(uid){
+  try{var wb=writeBatch(fs);wb.delete(doc(fs,"bans",uid));wb.delete(doc(fs,"appeals",uid));await wb.commit();$("adminMsg").textContent="User unbanned. They can rejoin now."}catch(x){adminFail(x)}
+}
+function renderBans(){
+  var b=$("banList");
+  if(!bansList.length){b.innerHTML='<p class="empty">No banned users.</p>';return}
+  b.innerHTML=bansList.map(function(x,i){var a=appeals[x.uid];
+    return '<div class="view"><div><p>'+esc(x.name||"User")+(x.reason?" · "+esc(x.reason):"")+'</p><span>'+(a?"Appeal: "+esc(a.text):"No appeal yet")+'</span></div><button class="btn small" data-unban="'+i+'">Unban</button></div>';
+  }).join("");
+}
+$("banList").onclick=function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-unban");
+  if(i===null||i===undefined||!isAdmin)return;
+  var x=bansList[+i];if(x&&confirm("Unban "+(x.name||"this user")+"? They will be able to rejoin."))unban(x.uid);
+};
+$("viewList").addEventListener("click",function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-vban");
+  if(i===null||i===undefined||!isAdmin)return;
+  var v=views[+i];if(!v)return;var m=metas[v.id];
+  if(v.uid==="anon")banUser(m&&m.uid,m&&m.name);else banUser(v.uid,v.by);
+});
+$("chatList").addEventListener("click",function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-cban");
+  if(i===null||i===undefined||!isAdmin)return;
+  var m=chat[+i];if(!m)return;var mm=metas[m.id];if(m.uid==="anon")banUser(mm&&mm.uid,mm&&mm.name);else banUser(m.uid,m.by);
+});
+$("voterList").addEventListener("click",function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-tban");
+  if(i===null||i===undefined||!isAdmin)return;
+  var k=voterKeys[+i];if(k&&votes[k])banUser(k,votes[k].name);
+});
+async function clearCol(n,label){
+  if(!confirm("Delete all "+label+"?"))return;
+  try{var s=await getDocs(collection(fs,n)),wb=writeBatch(fs);s.forEach(function(d){wb.delete(d.ref)});await wb.commit();$("adminMsg").textContent="Cleared "+label+"."}catch(x){adminFail(x)}
+}
+$("clrChat").onclick=function(){clearCol("chat","chat messages")};
+$("clrViews").onclick=function(){clearCol("views","views")};
+$("fxConf").onclick=function(){fireFx("confetti")};
+$("fxRain").onclick=function(){fireFx("rain")};
+$("fxQuake").onclick=function(){fireFx("quake")};
+$("fxFlip").onclick=function(){fireFx("flip")};
+$("fxAnn").onclick=function(){var t=$("annText").value.trim();if(t){fireFx("announce",t);$("annText").value=""}};
+function announce(t){var a=$("announce");a.textContent="📢 "+t;a.classList.remove("hide");sfx("success");setTimeout(function(){a.classList.add("hide")},9000)}
+function quake(){var w=document.querySelector(".wrap");w.classList.add("quake");sfx("vote");setTimeout(function(){w.classList.remove("quake")},4000)}
+function flip(){var w=document.querySelector(".wrap");w.classList.add("flip");setTimeout(function(){w.classList.remove("flip")},8000)}
+function rainFx(chars){
+  var c=$("fxCanvas"),x=c.getContext("2d"),ps=[],end=Date.now()+6000;
+  c.width=innerWidth;c.height=innerHeight;c.classList.remove("hide");sfx("vote");
+  function add(){for(var i=0;i<4;i++)ps.push({x:Math.random()*c.width,y:-20,vy:2+Math.random()*3,vx:Math.random()*2-1,s:18+Math.random()*16,c:chars?chars[Math.floor(Math.random()*chars.length)]:null,h:Math.random()*360,r:Math.random()*6})}
+  var iv=setInterval(add,60);
+  (function loop(){
+    x.clearRect(0,0,c.width,c.height);
+    ps=ps.filter(function(p){p.y+=p.vy;p.x+=p.vx;p.r+=.1;if(p.y>c.height+30)return false;
+      if(p.c){x.font=p.s+"px serif";x.fillText(p.c,p.x,p.y)}else{x.fillStyle="hsl("+p.h+",100%,60%)";x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillRect(-4,-2,9,5);x.restore()}
+      return true});
+    if(Date.now()>=end)clearInterval(iv);
+    if(Date.now()<end||ps.length){requestAnimationFrame(loop)}else{c.classList.add("hide")}
+  })();
+}
+
+/* password reset, anonymous chat, pins, titles */
+$("forgotLink").onclick=async function(e){
+  e.preventDefault();
+  var email=$("uEmail").value.trim(),err=$("authErr");
+  if(!validEmail(email)){err.textContent="Type your email above first, then tap Forgot password.";return}
+  try{await sendPasswordResetEmail(auth,email);err.textContent="✅ Reset link sent. Check your inbox and spam folder."}catch(x){err.textContent=authMsg(x)}
+};
+async function postChatDoc(t){
+  var exp=Date.now()+86400000;
+  if(!$("chatAnon").checked){return addDoc(collection(fs,"chat"),{text:t,by:dname(),uid:user.uid,ts:serverTimestamp(),expireAt:exp})}
+  var r=doc(collection(fs,"chat")),wb=writeBatch(fs);
+  wb.set(r,{text:t,by:"Anonymous",uid:"anon",ts:serverTimestamp(),expireAt:exp});
+  wb.set(doc(fs,"viewMeta",r.id),{uid:user.uid,name:dname(),ts:serverTimestamp()});
+  return wb.commit();
+}
+function badgeHtml(t){
+  var c=/^#[0-9a-fA-F]{6}$/.test(t.color||"")?t.color:"#ffd36b",an=["pulse","rainbow","shimmer"].indexOf(t.anim)>-1?t.anim:"none";
+  return ' <span class="ttl a-'+an+'" style="color:'+c+';'+(t.glow?"box-shadow:0 0 10px "+c+";text-shadow:0 0 6px "+c+";":"")+'">'+esc(t.text||"")+'</span>';
+}
+function badge(uid){return titles[uid]&&titles[uid].text?badgeHtml(titles[uid]):""}
+function renderPins(){
+  var b=$("pinList");
+  if(!pins.length){b.innerHTML="";return}
+  b.innerHTML='<div class="pinbox"><b>📌 Pinned</b>'+pins.map(function(p,i){
+    return '<div class="view"><div><p>'+esc(p.text)+'</p><span>'+esc(p.by||"")+(p.uid&&p.uid!=="anon"?badge(p.uid):"")+'</span></div>'+(isAdmin?'<button class="btn small" data-unpin="'+i+'">Unpin</button>':'')+'</div>';
+  }).join("")+'</div>';
+}
+$("pinList").onclick=async function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-unpin");
+  if(i===null||i===undefined||!isAdmin||!pins[+i])return;
+  try{await deleteDoc(doc(fs,"pins",pins[+i].id))}catch(x){adminFail(x)}
+};
+$("chatList").addEventListener("click",async function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-cpin");
+  if(i!==null&&i!==undefined&&isAdmin&&chat[+i]){
+    var m=chat[+i];
+    try{await setDoc(doc(fs,"pins",m.id),{text:m.text,by:m.by,uid:m.uid,ts:serverTimestamp()});$("adminMsg").textContent="Message pinned."}catch(x){adminFail(x)}
+    return;
+  }
+  var j=e.target.getAttribute&&e.target.getAttribute("data-ctt");
+  if(j!==null&&j!==undefined&&isAdmin&&chat[+j]){var c=chat[+j],mm=metas[c.id];if(c.uid==="anon")openTitle(mm&&mm.uid,mm&&mm.name);else openTitle(c.uid,c.by)}
+});
+$("viewList").addEventListener("click",function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-vtt");
+  if(i===null||i===undefined||!isAdmin||!views[+i])return;
+  var v=views[+i],m=metas[v.id];
+  if(v.uid==="anon")openTitle(m&&m.uid,m&&m.name);else openTitle(v.uid,v.by);
+});
+$("voterList").addEventListener("click",function(e){
+  var i=e.target.getAttribute&&e.target.getAttribute("data-ttt");
+  if(i===null||i===undefined||!isAdmin)return;
+  var k=voterKeys[+i];if(k&&votes[k])openTitle(k,votes[k].name);
+});
+var PRESETS=[{t:"VIP",c:"#ffd36b",a:"pulse"},{t:"Champion",c:"#ff9f1c",a:"shimmer"},{t:"Legend",c:"#ff4dd2",a:"rainbow"},{t:"Mod",c:"#2ee59d",a:"none"},{t:"Rookie",c:"#9aa4b2",a:"none"},{t:"Troll Slayer",c:"#ff4d6d",a:"pulse"},{t:"Fan",c:"#4dabff",a:"none"},{t:"Supporter",c:"#c77dff",a:"shimmer"}];
+$("ttPresets").innerHTML=PRESETS.map(function(p,i){return '<button class="btn small" data-pre="'+i+'">'+esc(p.t)+'</button>'}).join("");
+function curTitle(){return {text:$("ttText").value.trim(),color:$("ttColor").value,glow:$("ttGlow").checked,anim:$("ttAnim").value}}
+function prevTitle(){var t=curTitle();$("ttPrev").innerHTML="Preview:"+(t.text?badgeHtml(t):" (type a title)")}
+function openTitle(uid,name){
+  if(!uid||uid==="anon"){$("adminMsg").textContent="Could not find that user.";return}
+  ttUid=uid;var t=titles[uid]||{};
+  $("ttWho").textContent="For "+(name||"this user");
+  $("ttText").value=t.text||"";$("ttColor").value=/^#[0-9a-fA-F]{6}$/.test(t.color||"")?t.color:"#ffd36b";
+  $("ttGlow").checked=t.glow!==false;$("ttAnim").value=t.anim||"none";
+  prevTitle();$("titleModal").classList.remove("hide");
+}
+$("ttPresets").onclick=function(e){var i=e.target.getAttribute&&e.target.getAttribute("data-pre");if(i===null||i===undefined)return;var p=PRESETS[+i];$("ttText").value=p.t;$("ttColor").value=p.c;$("ttAnim").value=p.a;$("ttGlow").checked=true;prevTitle()};
+["ttText","ttColor","ttGlow","ttAnim"].forEach(function(id){$(id).oninput=prevTitle;$(id).onchange=prevTitle});
+$("ttClose").onclick=function(){$("titleModal").classList.add("hide")};
+$("ttSave").onclick=async function(){
+  var t=curTitle();if(!t.text||!ttUid)return;
+  try{await setDoc(doc(fs,"titles",ttUid),{text:t.text,color:t.color,glow:t.glow,anim:t.anim,ts:serverTimestamp()});$("titleModal").classList.add("hide");$("adminMsg").textContent="Title saved."}catch(x){$("titleModal").classList.add("hide");adminFail(x)}
+};
+$("ttRemove").onclick=async function(){
+  if(!ttUid)return;
+  try{await deleteDoc(doc(fs,"titles",ttUid));$("titleModal").classList.add("hide");$("adminMsg").textContent="Title removed."}catch(x){$("titleModal").classList.add("hide");adminFail(x)}
+};
+
+/* 24h expiry, toasts, emoji */
+var chatSeen=null;
+function expired(m){return !!m.expireAt&&m.expireAt<Date.now()}
+function toast(t){var d=document.createElement("div");d.className="toast";d.textContent=t;$("toasts").appendChild(d);setTimeout(function(){d.remove()},4000)}
+var EM=["😀","😂","🤣","😎","😡","😈","💀","🔥","💥","⚔️","🥊","🛡️","👑","🏆","🎉","👍","👎","❤️","😭","🤯"];
+$("emojiBar").innerHTML=EM.map(function(e){return '<button type="button" data-em="'+e+'">'+e+'</button>'}).join("");
+$("emojiBtn").onclick=function(){$("emojiBar").classList.toggle("hide")};
+$("emojiBar").onclick=function(ev){var e=ev.target.getAttribute&&ev.target.getAttribute("data-em");if(e){$("chatIn").value+=e;$("chatIn").focus()}};
+setInterval(renderChat,60000);
+
+
+/* admin overlay, soundboard, more powers */
+var adminOpen=false,votesLocked=false,chatLocked=false;
+document.body.appendChild($("adminPanel"));
+$("adminFab").onclick=function(){adminOpen=true;render()};
+$("admClose").onclick=function(){adminOpen=false;render()};
+function adminLabels(){
+  $("lockVotes").textContent=votesLocked?"🔓 Unlock voting":"🔒 Lock voting";
+  $("lockChat").textContent=chatLocked?"🔓 Unlock chat":"🔒 Lock chat";
+}
+async function setCfg(o,msg){try{await setDoc(doc(fs,"config","main"),o,{merge:true});if(msg)$("adminMsg").textContent=msg}catch(x){adminFail(x)}}
+$("lockVotes").onclick=function(){setCfg({votesLocked:!votesLocked},votesLocked?"Voting unlocked.":"Voting locked.")};
+$("lockChat").onclick=function(){setCfg({chatLocked:!chatLocked},chatLocked?"Chat unlocked.":"Chat locked.")};
+$("fxBlack").onclick=function(){fireFx("blackout")};
+$("fxFake").onclick=function(){fireFx("fakeban")};
+$("adminPanel").addEventListener("click",function(e){
+  var s=e.target.getAttribute&&e.target.getAttribute("data-snd"),a=e.target.getAttribute&&e.target.getAttribute("data-addmin");
+  if(s)fireFx("snd:"+s);
+  if(a){var base=endsAt&&endsAt>Date.now()?endsAt:Date.now();setCfg({endsAt:base+parseInt(a,10)*60000},"Added "+a+" min to the timer.")}
+});
+function blackout(){var p=$("prank");p.className="prank dark";p.textContent="💡 Lights out…";sfx("vote");setTimeout(function(){p.classList.add("hide")},6000)}
+function fakeBan(){var p=$("prank");p.className="prank red";p.textContent="🚫 You have been banned";sfx("error");setTimeout(function(){p.textContent="😂 Just kidding!"},3500);setTimeout(function(){p.classList.add("hide")},5500)}
+function playBoard(n){
+  if(!prefs.sound)return;
+  var fell=false,fb=function(){if(!fell){fell=true;synth(n)}},a=new Audio(n+".mp3");
+  a.onerror=fb;
+  var p=a.play();if(p&&p.catch)p.catch(fb);
+}
+function synth(n){
+  initAudio();if(!actx||actx.state!=="running")return;
+  var t=actx.currentTime;
+  if(n==="fahhh"){
+    var o=actx.createOscillator(),g=actx.createGain(),f1=actx.createBiquadFilter(),f2=actx.createBiquadFilter(),lfo=actx.createOscillator(),lg=actx.createGain();
+    o.type="sawtooth";o.frequency.setValueAtTime(330,t);o.frequency.exponentialRampToValueAtTime(140,t+1.5);
+    lfo.frequency.value=6;lg.gain.value=8;lfo.connect(lg);lg.connect(o.frequency);
+    f1.type="bandpass";f1.frequency.value=800;f1.Q.value=4;f2.type="bandpass";f2.frequency.value=1250;f2.Q.value=5;
+    g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.9,t+.08);g.gain.setValueAtTime(.9,t+1.1);g.gain.exponentialRampToValueAtTime(.001,t+1.6);
+    o.connect(f1);o.connect(f2);f1.connect(g);f2.connect(g);g.connect(actx.destination);
+    o.start(t);lfo.start(t);o.stop(t+1.7);lfo.stop(t+1.7);
+  }
+  else if(n==="airhorn"){[440,554,659].forEach(function(f){tone(f,t,1.1,"sawtooth",.18);tone(f*1.01,t,1.1,"square",.08)})}
+  else if(n==="sadtrombone"){[233,220,208].forEach(function(f,i){tone(f,t+i*.55,.5,"sawtooth",.25,f*.97)});tone(196,t+1.65,1.3,"sawtooth",.25,150)}
+  else if(n==="boom"){tone(110,t,.9,"sine",.9,30);noise(t,.15,"lowpass",800,100,.6)}
+  else if(n==="siren"){for(var k=0;k<4;k++){tone(600,t+k*.5,.5,"square",.15,900)}}
+}
+
+
+/* custom emoji rain */
+function rainSet(t){
+  var def=["🥊","⚔️","🔥","💥","👑","🏆"],s=String(t||"").trim();
+  if(!s)return def;
+  var parts=(window.Intl&&Intl.Segmenter)?Array.from(new Intl.Segmenter(undefined,{granularity:"grapheme"}).segment(s),function(x){return x.segment}):Array.from(s);
+  parts=parts.filter(function(c){return c.trim()}).slice(0,12);
+  return parts.length?parts:def;
+}
+$("fxRainCustom").onclick=function(){
+  var t=$("rainText").value.trim();
+  if(!t){$("adminMsg").textContent="Type or tap an emoji first.";return}
+  fireFx("rain",t);
+};
+$("rainChips").onclick=function(e){var c=e.target.getAttribute&&e.target.getAttribute("data-rainchip");if(c)$("rainText").value=c};
+
+
+/* custom rain, mini admins, mutes */
+var isMod=false,muteUntil=0,unsubMod=null,unsubMute=null,modsList=[],mutesList=[];
+function parseEmojis(t){
+  var a=(window.Intl&&Intl.Segmenter)?Array.from(new Intl.Segmenter(undefined,{granularity:"grapheme"}).segment(t||""),function(s){return s.segment}):Array.from(t||"");
+  a=a.filter(function(c){return c.trim()});
+  return a.length?a.slice(0,12):["🍌"];
+}
+$("fxRainC").onclick=function(){var t=$("rainText").value.trim();if(!t){toast("Type an emoji first");return}fireFx("rainc",t)};
+function attachMe(){
+  if(unsubMod){unsubMod();unsubMod=null}
+  if(unsubMute){unsubMute();unsubMute=null}
+  isMod=false;muteUntil=0;
+  if(!user)return;
+  unsubMod=onSnapshot(doc(fs,"mods",user.uid),function(s){var was=isMod;isMod=s.exists();if(isMod&&!was)toast("🛡 You are now a mini admin. You can mute people for up to 10 minutes.");renderChat()},function(){});
+  unsubMute=onSnapshot(doc(fs,"mutes",user.uid),function(s){
+    var u=s.exists()?s.data().until:0;
+    if(u>Date.now()&&u!==muteUntil)toast("🔇 You are muted until "+new Date(u).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}));
+    muteUntil=u||0;
+  },function(){});
+}
+function chatUid(m){return m.uid==="anon"?(metas[m.id]&&metas[m.id].uid):m.uid}
+function chatName(m){return m.uid==="anon"?(metas[m.id]&&metas[m.id].name):m.by}
+async function muteUser(uid,name){
+  if(!uid){toast("Could not find that user");return}
+  var max=isAdmin?1440:10,r=prompt("Mute "+(name||"this user")+" for how many minutes? (1 to "+max+")","5");
+  if(r===null)return;
+  var m=Math.floor(Number(r));
+  if(!m||m<1||m>max){toast("Enter a number from 1 to "+max);return}
+  try{await setDoc(doc(fs,"mutes",uid),{name:name||"User",until:Date.now()+m*60000,by:user.uid,byName:dname(),ts:serverTimestamp()});toast("🔇 Muted "+(name||"user")+" for "+m+" min")}
+  catch(x){toast("Could not mute. They may already be muted.")}
+}
+async function giveMod(uid,name){
+  if(!uid){toast("Could not find that user");return}
+  try{await setDoc(doc(fs,"mods",uid),{name:name||"User",ts:serverTimestamp()});toast("🛡 "+(name||"User")+" is now a mini admin")}catch(x){adminFail(x)}
+}
+$("chatList").addEventListener("click",function(e){
+  var t=e.target,a=t.getAttribute&&t.getAttribute("data-cmute"),b=t.getAttribute&&t.getAttribute("data-cmod"),m;
+  if(a!==null&&a!==undefined){m=chat[+a];if(m)muteUser(chatUid(m),chatName(m))}
+  else if(b!==null&&b!==undefined&&isAdmin){m=chat[+b];if(m)giveMod(chatUid(m),chatName(m))}
+});
+function attachAdmin2(){
+  onSnapshot(collection(fs,"mods"),function(s){modsList=[];s.forEach(function(d){var x=d.data();x.uid=d.id;modsList.push(x)});renderMods()},function(){});
+  onSnapshot(collection(fs,"mutes"),function(s){mutesList=[];s.forEach(function(d){var x=d.data();x.uid=d.id;mutesList.push(x)});renderMods()},function(){});
+}
+function renderMods(){
+  var a=$("modList"),b=$("muteList"),now=Date.now(),act=mutesList.filter(function(x){return x.until>now});
+  a.innerHTML=modsList.length?modsList.map(function(x,i){return '<div class="view"><div><p>🛡 '+esc(x.name||"User")+'</p></div><button class="btn danger small" data-rmmod="'+i+'">Remove</button></div>'}).join(""):'<p class="empty">No mini admins yet. Tap a chat message to add one.</p>';
+  b.innerHTML=act.length?act.map(function(x){return '<div class="view"><div><p>🔇 '+esc(x.name||"User")+'</p><span>Until '+new Date(x.until).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})+(x.byName?" · by "+esc(x.byName):"")+'</span></div><button class="btn small" data-unmute="'+x.uid+'">Unmute</button></div>'}).join(""):'<p class="empty">Nobody is muted.</p>';
+}
+$("modList").onclick=async function(e){var i=e.target.getAttribute&&e.target.getAttribute("data-rmmod");if(i===null||i===undefined||!isAdmin||!modsList[+i])return;try{await deleteDoc(doc(fs,"mods",modsList[+i].uid))}catch(x){adminFail(x)}};
+$("muteList").onclick=async function(e){var u=e.target.getAttribute&&e.target.getAttribute("data-unmute");if(!u||!isAdmin)return;try{await deleteDoc(doc(fs,"mutes",u))}catch(x){adminFail(x)}};
+setInterval(renderMods,30000);
+
+})();
+}).catch(function(e){window.__vsFailed=true;if(window.__vsBox)window.__vsBox("Site error: "+((e&&e.message)||e))});
+</script>
+</body>
+</html>
