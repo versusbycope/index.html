@@ -170,7 +170,7 @@ setTimeout(function(){if(!window.__vsLoaded)box("Still loading after 45 seconds.
 </head>
 <body>
 <script>window.__vsStage="top of page loaded"</script>
-<div id="boot" style="position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0f0d1f;color:#fff;font:600 1.1rem system-ui,sans-serif;text-align:center;padding:20px"><div style="width:42px;height:42px;border:4px solid #ffffff33;border-top-color:#ff7a93;border-radius:50%;animation:bootspin 1s linear infinite"></div>Loading vs… <span style="font-weight:400;font-size:.8rem;opacity:.5">build 23-Nov-A</span><span style="font-weight:400;font-size:.9rem;opacity:.7">Slow connection? Give it a few seconds.</span><span id="bootT" style="font-weight:400;font-size:.85rem;opacity:.6"></span></div>
+<div id="boot" style="position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0f0d1f;color:#fff;font:600 1.1rem system-ui,sans-serif;text-align:center;padding:20px"><div style="width:42px;height:42px;border:4px solid #ffffff33;border-top-color:#ff7a93;border-radius:50%;animation:bootspin 1s linear infinite"></div>Loading vs… <span style="font-weight:400;font-size:.8rem;opacity:.5">build 23-Nov-B</span><span style="font-weight:400;font-size:.9rem;opacity:.7">Slow connection? Give it a few seconds.</span><span id="bootT" style="font-weight:400;font-size:.85rem;opacity:.6"></span></div>
 <div class="intro wait" id="intro" aria-hidden="true">
   <div class="stage">
     <div class="sw l"><svg viewBox="0 0 320 60"><polygon points="92,22 300,26 318,30 300,34 92,38" fill="#e6ebff" stroke="#9fb0ff" stroke-width="2"/><rect x="78" y="8" width="14" height="44" rx="3" fill="#6f85ff"/><rect x="24" y="25" width="54" height="10" fill="#3a4cc7"/><circle cx="18" cy="30" r="9" fill="#6f85ff"/></svg></div>
@@ -297,7 +297,10 @@ setTimeout(function(){if(!window.__vsLoaded)box("Still loading after 45 seconds.
     <div class="row chips" id="rainChips" style="margin-top:6px"><button class="btn small" data-rainchip="🍌">🍌</button><button class="btn small" data-rainchip="🍕">🍕</button><button class="btn small" data-rainchip="🦆">🦆</button><button class="btn small" data-rainchip="💸">💸</button><button class="btn small" data-rainchip="💩">💩</button><button class="btn small" data-rainchip="🍌🍕🦆">Mix</button></div>
     <h3 style="margin:16px 0 8px">Soundboard (plays for everyone)</h3>
     <div class="row" id="board"><button class="btn" data-snd="fahhh">🔊 Fahhh</button><button class="btn" data-snd="airhorn">📯 Airhorn</button><button class="btn" data-snd="sadtrombone">😢 Sad trombone</button><button class="btn" data-snd="boom">💥 Boom</button><button class="btn" data-snd="siren">🚨 Siren</button></div>
-    <div class="row" style="margin-top:10px"><input id="sndName" maxlength="30" placeholder="Your own file name, like fahhh" aria-label="Sound file name"><button class="btn primary" id="sndPlay">▶ Play file</button></div>
+    <div class="row" style="margin-top:12px"><input id="sndSearch" placeholder="🔎 Search your sounds (type part of the name)" aria-label="Search sounds"><button class="btn" id="sndRefresh" aria-label="Refresh sound list">↻</button></div>
+    <p class="pill" id="sndCount" style="margin:6px 0"></p>
+    <div id="sndResults"></div>
+    <div class="row" style="margin-top:10px"><input id="sndName" maxlength="30" placeholder="Or type the exact file name" aria-label="Sound file name"><button class="btn primary" id="sndPlay">▶ Play file</button></div>
     <h3 style="margin:16px 0 8px">Custom emoji rain</h3>
     <div class="row"><input id="rainText" maxlength="30" placeholder="Type emojis, like 🍌" aria-label="Emojis for the rain"><button class="btn primary" id="fxRainC">🌧 Rain</button></div>
     <h3 style="margin:16px 0 8px">More powers</h3>
@@ -984,8 +987,8 @@ $("adminPanel").addEventListener("click",function(e){
 function blackout(){var p=$("prank");p.className="prank dark";p.textContent="💡 Lights out…";sfx("vote");setTimeout(function(){p.classList.add("hide")},6000)}
 function fakeBan(){var p=$("prank");p.className="prank red";p.textContent="🚫 You have been banned";sfx("error");setTimeout(function(){p.textContent="😂 Just kidding!"},3500);setTimeout(function(){p.classList.add("hide")},5500)}
 function playBoard(n){
-  if(!prefs.sound||!/^[a-z0-9_-]{1,30}$/i.test(n))return;
-  var fell=false,fb=function(){if(!fell){fell=true;synth(n)}},a=new Audio(n+".mp3");
+  if(!prefs.sound||!okSnd(n))return;
+  var fell=false,fb=function(){if(!fell){fell=true;synth(n)}},a=new Audio(encodeURIComponent(n)+".mp3");
   a.onerror=fb;
   var p=a.play();if(p&&p.catch)p.catch(fb);
 }
@@ -1065,6 +1068,7 @@ $("chatList").addEventListener("click",function(e){
   else if(b!==null&&b!==undefined&&isAdmin){m=chat[+b];if(m){var mu=chatUid(m);if(modsList.some(function(x){return x.uid===mu}))removeMod(mu,chatName(m));else giveMod(mu,chatName(m))}}
 });
 function attachAdmin2(){
+  loadSounds().then(renderSnd);
   onSnapshot(collection(fs,"mods"),function(s){modsList=[];s.forEach(function(d){var x=d.data();x.uid=d.id;modsList.push(x)});renderMods();renderChat()},function(){});
   onSnapshot(collection(fs,"mutes"),function(s){mutesList=[];s.forEach(function(d){var x=d.data();x.uid=d.id;mutesList.push(x)});renderMods()},function(){});
 }
@@ -1086,7 +1090,41 @@ async function removeMod(uid,name){
 var admSizes=["28vh","45vh","75vh"],admIdx=1,admFaded=false;
 $("admSize").onclick=function(){admIdx=(admIdx+1)%admSizes.length;document.documentElement.style.setProperty("--admh",admSizes[admIdx])};
 $("admFade").onclick=function(){admFaded=!admFaded;$("adminPanel").style.opacity=admFaded?".5":""};
-$("sndPlay").onclick=function(){var n=$("sndName").value.trim().replace(/\.mp3$/i,"");if(!/^[a-z0-9_-]{1,30}$/i.test(n)){toast("Use letters and numbers only");return}fireFx("snd:"+n)};
+$("sndPlay").onclick=function(){var n=$("sndName").value.trim().replace(/\.mp3$/i,"");if(!okSnd(n)){toast("That name has a character I cannot use");return}fireFx("snd:"+n)};
+
+
+/* searchable sound list (reads the mp3 files in your GitHub repo) */
+var SND_REPO="versusbycope/index.html",sndList=[],sndMatches=[];
+function okSnd(n){return typeof n==="string"&&n.length>0&&n.length<=60&&!/[\/\\?#]/.test(n)&&n.indexOf("..")<0}
+async function loadSounds(force){
+  var cached=null;
+  try{cached=JSON.parse(localStorage.getItem("vs-sounds")||"null")}catch(e){}
+  if(!force&&cached&&Date.now()-cached.t<600000){sndList=cached.l;return}
+  try{
+    var r=await fetch("https://api.github.com/repos/"+SND_REPO+"/contents/");
+    if(!r.ok)throw new Error("status "+r.status);
+    var a=await r.json();
+    sndList=a.filter(function(f){return f.type==="file"&&/\.mp3$/i.test(f.name)}).map(function(f){return f.name.replace(/\.mp3$/i,"")}).sort(function(x,y){return x.toLowerCase()<y.toLowerCase()?-1:1});
+    try{localStorage.setItem("vs-sounds",JSON.stringify({t:Date.now(),l:sndList}))}catch(e){}
+  }catch(e){
+    sndList=cached?cached.l:[];
+    $("sndCount").textContent=sndList.length?"Could not refresh the list, showing the last saved one.":"Could not load the list from GitHub. Type the exact file name below instead.";
+  }
+}
+function renderSnd(){
+  var q=$("sndSearch").value.trim().toLowerCase(),toks=q?q.split(/\s+/):[];
+  sndMatches=sndList.filter(function(n){var l=n.toLowerCase();return toks.every(function(t){return l.indexOf(t)>=0})});
+  var shown=sndMatches.slice(0,30);
+  if(sndList.length)$("sndCount").textContent=sndMatches.length+" of "+sndList.length+" sounds"+(sndMatches.length>30?" (showing the first 30, keep typing to narrow it down)":"");
+  $("sndResults").innerHTML=shown.length?shown.map(function(n,i){return '<div class="view"><div><p>🔊 '+esc(n)+'</p></div><button class="btn small" data-sme="'+i+'">🎧 Me</button><button class="btn primary small" data-sall="'+i+'">📢 Everyone</button></div>'}).join(""):'<p class="empty">'+(sndList.length?"No sound matches that.":"No sounds found yet. Upload mp3 files to your GitHub repo.")+'</p>';
+}
+$("sndSearch").oninput=renderSnd;
+$("sndRefresh").onclick=function(){loadSounds(true).then(renderSnd);toast("Refreshing the sound list…")};
+$("sndResults").onclick=function(e){
+  var m=e.target.getAttribute&&e.target.getAttribute("data-sme"),a=e.target.getAttribute&&e.target.getAttribute("data-sall");
+  if(m!==null&&m!==undefined&&sndMatches[+m])playBoard(sndMatches[+m]);
+  else if(a!==null&&a!==undefined&&sndMatches[+a])fireFx("snd:"+sndMatches[+a]);
+};
 
 })();
 }).catch(function(e){window.__vsFailed=true;if(window.__vsBox)window.__vsBox("Site error: "+((e&&e.message)||e))});
